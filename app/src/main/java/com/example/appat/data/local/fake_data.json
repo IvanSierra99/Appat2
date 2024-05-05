@@ -1,0 +1,31 @@
+{
+  "usuarios": [
+    {
+      "userId": "1",
+      "nombre": "Juan",
+      "apellido1": "Pérez",
+      "apellido2": "García",
+      "username": "juanperez",
+      "correo": "juan@example.com",
+      "rol": "ADMINISTRADOR"
+    },
+    {
+      "userId": "2",
+      "nombre": "María",
+      "apellido1": "López",
+      "apellido2": "Martínez",
+      "username": "marialopez",
+      "correo": "maria@example.com",
+      "rol": "COORDINADOR"
+    },
+    {
+      "userId": "3",
+      "nombre": "Pedro",
+      "apellido1": "González",
+      "apellido2": "",
+      "username": "pedrogonzalez",
+      "correo": "pedro@example.com",
+      "rol": "MONITOR"
+    }
+  ]
+}
