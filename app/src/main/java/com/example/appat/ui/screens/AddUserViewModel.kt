@@ -9,7 +9,7 @@ import com.example.appat.core.onFailure
 import com.example.appat.core.onSuccess
 import kotlinx.coroutines.launch
 
-class CrearUsuarioViewModel(private val crearUsuarioUseCase: CrearUsuarioUseCase) : ViewModel() {
+class CrearUsuarioViewModel(val crearUsuarioUseCase: CrearUsuarioUseCase) : ViewModel() {
     fun createUser(input: CrearUsuariInput, onSuccess: (Usuario) -> Unit, onError: (Throwable) -> Unit) {
         viewModelScope.launch {
             val result = crearUsuarioUseCase(input)
