@@ -9,7 +9,7 @@ data class Usuario(
     val nombre: Nombre,
     val apellido1: Apellido,
     val apellido2: Apellido? = null, // Hacer apellido2 opcional
-    val username: Username = Username(nombre.nombre, apellido1.apellido),
+    val username: Username = Username.fromNameAndSurname(nombre.nombre, apellido1.apellido),
     val correo: Correo,
     val contraseña: Contraseña = Contraseña.generarAleatoria(),
     val rol: Rol
@@ -34,15 +34,14 @@ data class Apellido(val apellido: String) {
 data class Username private constructor(val username: String) {
     companion object {
         // Genera un username a partir del nombre y el primer apellido
-        operator fun invoke(nombre: String, apellido: String): Username {
-            // Crear la base del username usando las primeras letras de nombre y apellido
+        fun fromNameAndSurname(nombre: String, apellido: String): Username {
             val base = nombre.take(2).lowercase() + apellido.take(2).lowercase()
-
-            // Generar un número aleatorio de tres cifras para asegurar la unicidad
             val numeroAleatorio = (100..999).random()
+            return Username(base + numeroAleatorio.toString())
+        }
 
-            // Combinar la base con el número para formar el username final
-            val username = base + numeroAleatorio.toString()
+        // Crea un Username desde un string completo
+        fun fromCompleteString(username: String): Username {
             return Username(username)
         }
     }

@@ -1,42 +1,40 @@
 package com.example.appat
 
-import CrearUsuarioViewModel
-import FakeUsuarioRepository
 import android.app.Application
+import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.appat.di.appModule
 import com.example.appat.ui.theme.AppatTheme
 import org.koin.core.context.GlobalContext.startKoin
-import androidx.compose.runtime.*
 import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.room.DeleteTable.Entries
-import com.example.appat.domain.usecases.CrearUsuarioUseCaseImpl
-import com.example.appat.ui.screens.CrearUsuarioScreen
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import com.example.appat.ui.activities.CrearUsuarioActivity
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
-import java.io.File
-import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.util.logging.Level
+import org.koin.core.logger.Level
 
 
 class Appat : Application() {
     override fun onCreate() {
         super.onCreate()
         startKoin {
+            androidLogger(Level.ERROR)
             androidContext(this@Appat)
-            modules(appModule)
+            modules(listOf(appModule))
         }
     }
 }
@@ -54,32 +52,27 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainScreen() {
-    // Obteniendo el ViewModel con Koin
-    val crearUsuarioViewModel: CrearUsuarioViewModel = viewModel()
+    // Contexto local para manejar operaciones relacionadas con la UI, como iniciar una Activity
+    val context = LocalContext.current
 
-    // Ahora puedes usar el ViewModel en tu UI
-    var showCreateUserScreen by remember { mutableStateOf(false) }
-
-    if (showCreateUserScreen) {
-        CrearUsuarioScreen(crearUsuarioViewModel = crearUsuarioViewModel, onUsuarioCreado = {})
-    } else {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Button(onClick = { showCreateUserScreen = true }) {
+            Button(
+                onClick = {
+                    // Intent para iniciar CrearUsuarioActivity
+                    context.startActivity(Intent(context, CrearUsuarioActivity::class.java))
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text("Crear Usuario")
             }
         }
     }
 }
-/*
-@Preview(showBackground = true)
-@Composable
-fun MainScreenPreview() {
-
-    AppatTheme {
-        MainScreen()
-    }
-}
-*/
