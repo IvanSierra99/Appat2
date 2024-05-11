@@ -8,7 +8,7 @@ data class Usuario(
     val userId: String = UUID.randomUUID().toString(),
     val nombre: Nombre,
     val apellido1: Apellido,
-    val apellido2: Apellido? = null, // Hacer apellido2 opcional
+    val apellido2: ApellidoOpcional? = null, // Hacer apellido2 opcional
     val username: Username = Username.fromNameAndSurname(nombre.nombre, apellido1.apellido),
     val correo: Correo,
     val contraseña: Contraseña = Contraseña.generarAleatoria(),
@@ -31,12 +31,19 @@ data class Apellido(val apellido: String) {
     }
 }
 
+data class ApellidoOpcional(val apellido: String?) {
+    init {
+
+    }
+}
+
+
 data class Username private constructor(val username: String) {
     companion object {
         // Genera un username a partir del nombre y el primer apellido
         fun fromNameAndSurname(nombre: String, apellido: String): Username {
-            val base = nombre.take(2).lowercase() + apellido.take(2).lowercase()
-            val numeroAleatorio = (100..999).random()
+            val base = nombre.take(4).lowercase() + apellido.take(2).lowercase()
+            val numeroAleatorio = (10..99).random()
             return Username(base + numeroAleatorio.toString())
         }
 
@@ -63,7 +70,7 @@ data class Correo(val correo: String) {
             "[a-zA-Z0-9.+_-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}"
         )
 
-        private fun isValidEmail(email: String): Boolean {
+        fun isValidEmail(email: String): Boolean {
             return EMAIL_ADDRESS_PATTERN.matcher(email).matches()
         }
     }
@@ -80,11 +87,15 @@ data class Contraseña private constructor(val contraseña: String) {
     }
     companion object {
         fun generarAleatoria(): Contraseña {
-            val longitud = 12 // Puedes ajustar la longitud de la contraseña según tus necesidades
+            val longitud = 12 // Longitud de la contraseña
             val caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+"
-            val contraseñaAleatoria = (1..longitud)
-                .map { caracteres.random() }
-                .joinToString("")
+            var contraseñaAleatoria: String
+            do {
+                contraseñaAleatoria = (1..longitud)
+                    .map { caracteres.random() }
+                    .joinToString("")
+            } while (!esContraseñaSegura(contraseñaAleatoria)) // Repite hasta que la contraseña sea segura
+
             return Contraseña(contraseñaAleatoria)
         }
 

@@ -17,7 +17,7 @@ data class CrearUsuariInput(
     val rol: String
 )
 class CrearUsuarioUseCaseImpl(
-    private val usuarioRepository: UsuarioRepositoryImpl
+    private val usuarioRepository: UsuarioRepository
 ) : CrearUsuarioUseCase {
 
     /*Todo contraseña generada automaticamente, enviar correo con nombre de usuario y contraseña
@@ -33,7 +33,7 @@ class CrearUsuarioUseCaseImpl(
         val usuario = Usuario(
             nombre = Nombre(input.nombre),
             apellido1 = Apellido(input.apellido1),
-            apellido2 = input.apellido2?.let { Apellido(it) }, // Crear Apellido solo si apellido2 no es null
+            apellido2 = input.apellido2?.let { ApellidoOpcional(it) }, // Crear Apellido solo si apellido2 no es null
             correo = Correo(input.correo),
             rol = Rol(input.rol)
         )
@@ -45,7 +45,7 @@ class CrearUsuarioUseCaseImpl(
     private fun CrearUsuariInput.toUser() = Usuario(
         nombre = Nombre(this.nombre),
         apellido1 = Apellido(this.apellido1),
-        apellido2 = this.apellido2?.let { Apellido(it) }, // Crear Apellido solo si apellido2 no es null
+        apellido2 = this.apellido2?.let { ApellidoOpcional(it) }, // Crear Apellido solo si apellido2 no es null
         correo = Correo(this.correo),
         rol = Rol(this.rol)
     )

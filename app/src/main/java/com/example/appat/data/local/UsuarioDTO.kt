@@ -8,7 +8,7 @@ data class UsuarioDTO(
     @SerialName("userId") val userId: String,
     @SerialName("nombre") val nombre: String,
     @SerialName("apellido1") val apellido1: String,
-    @SerialName("apellido2") val apellido2: String? = null,
+    @SerialName("apellido2") val apellido2: String?,
     @SerialName("username") val username: String,
     @SerialName("correo") val correo: String,
     @SerialName("contraseña") val contraseña: String,

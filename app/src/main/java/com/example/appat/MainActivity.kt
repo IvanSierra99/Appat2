@@ -26,7 +26,13 @@ import com.example.appat.ui.activities.CrearUsuarioActivity
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.logger.Level
-
+import org.koin.android.ext.koin.androidFileProperties
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.res.painterResource
+import com.example.appat.ui.activities.LoginActivity
+import kotlinx.coroutines.delay
 
 class Appat : Application() {
     override fun onCreate() {
@@ -34,7 +40,8 @@ class Appat : Application() {
         startKoin {
             androidLogger(Level.ERROR)
             androidContext(this@Appat)
-            modules(listOf(appModule))
+            androidFileProperties()
+            modules(appModule)
         }
     }
 }
@@ -44,12 +51,26 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             AppatTheme {
-                MainScreen()
+                SplashScreen {
+                    finish() // Asegúrate de llamar finish() aquí para cerrar la actividad después de navegar
+                }
             }
         }
     }
 }
-
+@Composable
+fun SplashScreen(onNavigateToLogin: () -> Unit) {
+    val context = LocalContext.current
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Image(painter = painterResource(id = R.drawable.logo2), contentDescription = "Logo")
+        LaunchedEffect(key1 = true) {
+            delay(5000)
+            // Usa el contexto obtenido de LocalContext.current
+            context.startActivity(Intent(context, LoginActivity::class.java))
+            onNavigateToLogin() // Llama a esta función para cerrar la actividad después de iniciar la otra
+        }
+    }
+}
 @Composable
 fun MainScreen() {
     // Contexto local para manejar operaciones relacionadas con la UI, como iniciar una Activity

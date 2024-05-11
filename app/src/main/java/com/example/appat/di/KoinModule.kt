@@ -11,7 +11,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.kotlinx.serializer.KotlinxSerializer
 import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -39,6 +38,13 @@ val appModule = module {
             install(Logging) {
                 logger = Logger.DEFAULT
                 level = LogLevel.BODY
+            }
+            engine {
+                // Configurar el timeout de conexión
+                endpoint {
+                    connectTimeout = 5000 // Tiempo en milisegundos
+                    requestTimeout = 5000 // Tiempo en milisegundos
+                }
             }
         }
     }

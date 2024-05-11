@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:name=".Appat"
         android:allowBackup="true"
@@ -24,6 +25,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ui.activities.LoginActivity"/>
+        <activity android:name=".ui.activities.AdminMainActivity"/>
         <activity android:name=".ui.activities.CrearUsuarioActivity"
             android:exported="false"/>
     </application>
