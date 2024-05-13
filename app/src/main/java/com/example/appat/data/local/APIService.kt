@@ -17,12 +17,6 @@ class UsuarioApiService(private val client: HttpClient) {
         isLenient = true // Permite comillas y comentarios más flexibles en JSON
     }
 
-    suspend fun getAllUsuarios(): List<UsuarioDTO> {
-        val response: HttpResponse = client.get("$baseUrl/usuarios/")
-        val responseBody = response.body<String>()
-        return json.decodeFromString(responseBody)
-    }
-
     suspend fun createUsuario(usuario: UsuarioDTO): UsuarioDTO {
         val response: HttpResponse = client.post("$baseUrl/usuarios/") {
             contentType(ContentType.Application.Json)
@@ -38,5 +32,25 @@ class UsuarioApiService(private val client: HttpClient) {
             body = usuario
         }
         return json.decodeFromString(response.body<String>())
+    }
+
+    @OptIn(InternalAPI::class)
+    suspend fun login(username: String, password: String): LoginResponse {
+        val loginUrl = "$baseUrl/api-token-auth/"
+        try {
+            val response: HttpResponse = client.post(loginUrl) {
+                contentType(ContentType.Application.Json)
+                setBody(LoginRequest(username, password))
+            }
+            if (response.status == HttpStatusCode.OK) {
+                return Json { ignoreUnknownKeys = true }.decodeFromString<LoginResponse>(response.bodyAsText())
+            } else {
+                println("Login failed with status: ${response.status} and body: ${response.bodyAsText()}")
+                throw Exception("Login failed: ${response.status.description} - ${response.bodyAsText()}")
+            }
+        } catch (e: Exception) {
+            println("Exception during login: ${e.message}")
+            throw e
+        }
     }
 }

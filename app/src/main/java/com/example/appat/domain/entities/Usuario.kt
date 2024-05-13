@@ -8,7 +8,6 @@ data class Usuario(
     val userId: String = UUID.randomUUID().toString(),
     val nombre: Nombre,
     val apellido1: Apellido,
-    val apellido2: ApellidoOpcional? = null, // Hacer apellido2 opcional
     val username: Username = Username.fromNameAndSurname(nombre.nombre, apellido1.apellido),
     val correo: Correo,
     val contraseña: Contraseña = Contraseña.generarAleatoria(),

@@ -1,5 +1,7 @@
 package com.example.appat.data.repositories
 
+import android.content.Context
+import com.example.appat.core.AppResult
 import com.example.appat.data.local.UsuarioApiService
 import com.example.appat.data.local.UsuarioDTO
 import com.example.appat.domain.entities.*
@@ -11,9 +13,13 @@ import org.koin.core.logger.Level
 
 interface UsuarioRepository {
     suspend fun createUser(usuario: Usuario): Usuario
+    suspend fun login(username: String, password: String): Usuario
 }
 
-class UsuarioRepositoryImpl(private val apiService: UsuarioApiService): UsuarioRepository {
+class UsuarioRepositoryImpl(
+    private val apiService: UsuarioApiService,
+    private val context: Context
+): UsuarioRepository {
     override suspend fun createUser(usuario: Usuario): Usuario {
         val usuarioDTO = usuario.toDTO()
         try {
@@ -34,15 +40,25 @@ class UsuarioRepositoryImpl(private val apiService: UsuarioApiService): UsuarioR
         }
     }
 
+    override suspend fun login(username: String, password: String): Usuario {
+        try {
+            val loginResponse = apiService.login(username, password)
+            val usuario = loginResponse.user.toDomain()
+            saveUserData(usuario)
+            return usuario  // Suponiendo que tienes un método toDomain en UsuarioDTO
+        } catch (e: Exception) {
+            throw Exception("Login failed: ${e.localizedMessage}")
+        }
+    }
+
     private fun Usuario.toDTO(): UsuarioDTO {
         return UsuarioDTO(
             userId = this.userId,
-            nombre = this.nombre.nombre,
-            apellido1 = this.apellido1.apellido,
-            apellido2 = this.apellido2?.apellido,
+            firstName = this.nombre.nombre, // Cambio de nombre de campo
+            lastName = this.apellido1.apellido, // Cambio de nombre de campo
             username = this.username.username,
             correo = this.correo.correo,
-            contraseña = this.contraseña.contraseña,
+            password = this.contraseña.contraseña,
             rol = this.rol.rol
         )
     }
@@ -50,13 +66,21 @@ class UsuarioRepositoryImpl(private val apiService: UsuarioApiService): UsuarioR
     private fun UsuarioDTO.toDomain(): Usuario {
         return Usuario(
             userId = this.userId,
-            nombre = Nombre(this.nombre),
-            apellido1 = Apellido(this.apellido1),
-            apellido2 = this.apellido2?.let { ApellidoOpcional(it) },
-            username = Username.fromCompleteString(this.username), // Asegúrate de que el constructor no sea privado
+            nombre = Nombre(this.firstName), // Cambio de nombre de campo
+            apellido1 = Apellido(this.lastName), // Cambio de nombre de campo
+            username = Username.fromCompleteString(this.username),
             correo = Correo(this.correo),
-            contraseña = Contraseña.crearNueva(this.contraseña), // Ajusta según la lógica de creación de contraseña
+            contraseña = Contraseña.crearNueva(this.password),
             rol = Rol(this.rol)
         )
+    }
+
+    private fun saveUserData(usuario: Usuario) {
+        val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        sharedPreferences.edit().apply {
+            putString("userId", usuario.userId.toString())
+            putString("username", usuario.username.username)
+            apply()
+        }
     }
 }

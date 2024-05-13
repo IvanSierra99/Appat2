@@ -19,6 +19,10 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
+import com.example.appat.domain.usecases.IniciarSesionUseCase
+import com.example.appat.domain.usecases.IniciarSesionUseCaseImpl
+import com.example.appat.ui.viewmodel.LoginViewModel
+import org.koin.android.ext.koin.androidContext
 
 val appModule = module {
 
@@ -51,11 +55,14 @@ val appModule = module {
 
     single<UsuarioApiService> { UsuarioApiService(get()) }
 
-    single<UsuarioRepository> { UsuarioRepositoryImpl(apiService = get()) }
+    single<UsuarioRepository> { UsuarioRepositoryImpl(apiService = get(), context = androidContext()) }
 
     factory<CrearUsuarioUseCase> { CrearUsuarioUseCaseImpl(usuarioRepository = get()) }
+    factory<IniciarSesionUseCase> { IniciarSesionUseCaseImpl(usuarioRepository = get()) }
 
     viewModel { CrearUsuarioViewModel(get()) }
+    viewModel { LoginViewModel(get()) }
+
 
 }
 

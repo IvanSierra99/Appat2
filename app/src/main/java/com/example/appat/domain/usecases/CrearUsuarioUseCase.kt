@@ -30,22 +30,16 @@ class CrearUsuarioUseCaseImpl(
         // Notificar al usuario el éxito de la creación*/
 
     override suspend fun invoke(input: CrearUsuariInput): AppResult<Usuario, Throwable> {
-        val usuario = Usuario(
-            nombre = Nombre(input.nombre),
-            apellido1 = Apellido(input.apellido1),
-            apellido2 = input.apellido2?.let { ApellidoOpcional(it) }, // Crear Apellido solo si apellido2 no es null
-            correo = Correo(input.correo),
-            rol = Rol(input.rol)
-        )
+        val usuario = input.toUser() // Utilizamos la extensión para convertir el input a Usuario
         return appRunCatching {
             usuarioRepository.createUser(usuario)
         }
     }
 
+    // Definimos la extensión para convertir CrearUsuariInput a Usuario
     private fun CrearUsuariInput.toUser() = Usuario(
         nombre = Nombre(this.nombre),
         apellido1 = Apellido(this.apellido1),
-        apellido2 = this.apellido2?.let { ApellidoOpcional(it) }, // Crear Apellido solo si apellido2 no es null
         correo = Correo(this.correo),
         rol = Rol(this.rol)
     )
