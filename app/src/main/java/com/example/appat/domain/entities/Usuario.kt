@@ -10,8 +10,10 @@ data class Usuario(
     val apellido1: Apellido,
     val username: Username = Username.fromNameAndSurname(nombre.nombre, apellido1.apellido),
     val correo: Correo,
-    val contraseña: Contraseña = Contraseña.generarAleatoria(),
-    val rol: Rol
+    val contraseña: Contraseña? = Contraseña.generarAleatoria(),
+    val rol: Rol,
+    val centroEscolar: CentroEscolar?,
+    val token: String? = null
 )
 
 data class Nombre(val nombre: String){
@@ -41,7 +43,7 @@ data class Username private constructor(val username: String) {
     companion object {
         // Genera un username a partir del nombre y el primer apellido
         fun fromNameAndSurname(nombre: String, apellido: String): Username {
-            val base = nombre.take(4).lowercase() + apellido.take(2).lowercase()
+            val base = nombre.take(4).lowercase() + apellido.take(3).lowercase()
             val numeroAleatorio = (10..99).random()
             return Username(base + numeroAleatorio.toString())
         }
@@ -56,9 +58,6 @@ data class Username private constructor(val username: String) {
 data class Correo(val correo: String) {
 
     init{
-        require(correo.isNotEmpty()){
-            "No puede estar vacío"
-        }
         require(isValidEmail(correo)) {
             "El correo no tiene un formato válido"
         }

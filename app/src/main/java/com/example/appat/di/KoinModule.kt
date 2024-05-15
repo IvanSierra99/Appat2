@@ -1,7 +1,7 @@
 package com.example.appat.di
 // appModule.kt
 import CrearUsuarioViewModel
-import com.example.appat.data.local.UsuarioApiService
+import com.example.appat.data.local.ApiService
 import org.koin.dsl.module
 import com.example.appat.data.repositories.UsuarioRepository
 import com.example.appat.data.repositories.UsuarioRepositoryImpl
@@ -53,7 +53,7 @@ val appModule = module {
         }
     }
 
-    single<UsuarioApiService> { UsuarioApiService(get()) }
+    single<ApiService> { ApiService(get()) }
 
     single<UsuarioRepository> { UsuarioRepositoryImpl(apiService = get(), context = androidContext()) }
 

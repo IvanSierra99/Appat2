@@ -5,7 +5,6 @@ import com.example.appat.core.UseCaseSuspend
 import com.example.appat.core.appRunCatching
 import com.example.appat.domain.entities.*
 import com.example.appat.data.repositories.UsuarioRepository
-import com.example.appat.data.repositories.UsuarioRepositoryImpl
 
 interface CrearUsuarioUseCase: UseCaseSuspend<CrearUsuariInput, AppResult<Usuario, Throwable>>
 
@@ -14,7 +13,9 @@ data class CrearUsuariInput(
     val apellido1: String,
     val apellido2: String? = null, // Hacer apellido2 opcional
     val correo: String,
-    val rol: String
+    val rol: String,
+    val centroEscolarId: String?,
+    val token: String?
 )
 class CrearUsuarioUseCaseImpl(
     private val usuarioRepository: UsuarioRepository
@@ -41,6 +42,8 @@ class CrearUsuarioUseCaseImpl(
         nombre = Nombre(this.nombre),
         apellido1 = Apellido(this.apellido1),
         correo = Correo(this.correo),
-        rol = Rol(this.rol)
+        rol = Rol(this.rol),
+        centroEscolar = centroEscolarId?.let { CentroEscolar(it, "", "", "", "") },
+        token = token
     )
 }

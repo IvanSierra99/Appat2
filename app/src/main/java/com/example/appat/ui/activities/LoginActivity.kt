@@ -1,9 +1,8 @@
 package com.example.appat.ui.activities
 
-import AppatTheme
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -38,6 +37,7 @@ class LoginActivity : ComponentActivity() {
 
         }
     }
+
 }
 
 @Composable
@@ -110,6 +110,12 @@ fun LoginScreen(activity: LoginActivity, loginViewModel: LoginViewModel) {
         if (hasAttemptedLogin) {  // Solo reacciona si se ha intentado el login
             try {
                 loginState?.let { user ->
+                    saveUserData(
+                        activity,
+                        user.token,
+                        user.username.username,
+                        user.centroEscolar?.nombre,
+                        user.centroEscolar?.centroId )
                     if (user.rol.rol.trim().uppercase() == "ADMINISTRADOR") {
                         val intent = Intent(activity, AdminMainActivity::class.java)
                         activity.startActivity(intent)
@@ -134,4 +140,15 @@ fun LoginScreen(activity: LoginActivity, loginViewModel: LoginViewModel) {
         }
     }
 
+}
+
+fun saveUserData(context: Context, token: String?, username: String, nombreCentro: String?, centroId: String?) {
+    val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+    with(sharedPreferences.edit()) {
+        putString("token", token)
+        putString("username", username)
+        putString("nombreCentro", nombreCentro)
+        putString("centroEscolarId", centroId)
+        apply()
+    }
 }

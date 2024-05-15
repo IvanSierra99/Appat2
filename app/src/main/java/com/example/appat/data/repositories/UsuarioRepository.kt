@@ -1,15 +1,14 @@
 package com.example.appat.data.repositories
 
 import android.content.Context
-import com.example.appat.core.AppResult
-import com.example.appat.data.local.UsuarioApiService
+import android.util.Log
+import com.example.appat.data.local.ApiService
+import com.example.appat.data.local.CentroEscolarDTO
 import com.example.appat.data.local.UsuarioDTO
 import com.example.appat.domain.entities.*
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ServerResponseException
 import kotlinx.serialization.SerializationException
-import org.koin.android.ext.koin.androidLogger
-import org.koin.core.logger.Level
 
 interface UsuarioRepository {
     suspend fun createUser(usuario: Usuario): Usuario
@@ -17,13 +16,14 @@ interface UsuarioRepository {
 }
 
 class UsuarioRepositoryImpl(
-    private val apiService: UsuarioApiService,
+    private val apiService: ApiService,
     private val context: Context
 ): UsuarioRepository {
     override suspend fun createUser(usuario: Usuario): Usuario {
+        val token = usuario.token
         val usuarioDTO = usuario.toDTO()
         try {
-            val createdUsuarioDTO = apiService.createUsuario(usuarioDTO)
+            val createdUsuarioDTO = apiService.createUsuario(usuarioDTO, token)
             return createdUsuarioDTO.toDomain()
         } catch (e: ClientRequestException) {
             // Captura errores de respuesta HTTP 4xx
@@ -43,44 +43,59 @@ class UsuarioRepositoryImpl(
     override suspend fun login(username: String, password: String): Usuario {
         try {
             val loginResponse = apiService.login(username, password)
-            val usuario = loginResponse.user.toDomain()
-            saveUserData(usuario)
-            return usuario  // Suponiendo que tienes un método toDomain en UsuarioDTO
+            val usuario = loginResponse.user
+            return usuario.toDomain(loginResponse.token)  // Suponiendo que tienes un método toDomain en UsuarioDTO
         } catch (e: Exception) {
+            Log.d("LoginRepo", "Attempting to login with username: $username")
             throw Exception("Login failed: ${e.localizedMessage}")
         }
     }
 
     private fun Usuario.toDTO(): UsuarioDTO {
+        val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         return UsuarioDTO(
             userId = this.userId,
             firstName = this.nombre.nombre, // Cambio de nombre de campo
             lastName = this.apellido1.apellido, // Cambio de nombre de campo
             username = this.username.username,
-            correo = this.correo.correo,
-            password = this.contraseña.contraseña,
-            rol = this.rol.rol
+            email = this.correo.correo,
+            password = this.contraseña?.contraseña,
+            rol = this.rol.rol,
+            centroEscolarId = this.centroEscolar?.centroId
         )
     }
 
-    private fun UsuarioDTO.toDomain(): Usuario {
+    private fun UsuarioDTO.toDomain(token: String? = null): Usuario {
         return Usuario(
             userId = this.userId,
             nombre = Nombre(this.firstName), // Cambio de nombre de campo
             apellido1 = Apellido(this.lastName), // Cambio de nombre de campo
             username = Username.fromCompleteString(this.username),
-            correo = Correo(this.correo),
-            contraseña = Contraseña.crearNueva(this.password),
-            rol = Rol(this.rol)
+            correo = Correo(this.email),
+            contraseña = this.password?.let { Contraseña.crearNueva(it) },
+            rol = Rol(this.rol),
+            centroEscolar = this.centroEscolar?.toDomain(),
+            token = token
         )
     }
 
-    private fun saveUserData(usuario: Usuario) {
-        val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        sharedPreferences.edit().apply {
-            putString("userId", usuario.userId.toString())
-            putString("username", usuario.username.username)
-            apply()
-        }
+    private fun CentroEscolar.toDTO(): CentroEscolarDTO {
+        return CentroEscolarDTO(
+            centroId = this.centroId,
+            nombre = this.nombre,
+            direccion = this.direccion,
+            telefono = this.telefono,
+            correo = this.correo,
+        )
+    }
+
+    private fun CentroEscolarDTO.toDomain(): CentroEscolar {
+        return CentroEscolar(
+            centroId = this.centroId,
+            nombre = this.nombre,
+            direccion = this.direccion,
+            telefono = this.telefono,
+            correo = this.correo,
+        )
     }
 }

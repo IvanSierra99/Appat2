@@ -6,10 +6,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class UsuarioDTO(
     @SerialName("userId") val userId: String,
-    @SerialName("first_name") val firstName: String, // Cambio de nombre de campo
-    @SerialName("last_name") val lastName: String, // Cambio de nombre de campo
     @SerialName("username") val username: String,
-    @SerialName("email") val correo: String,
-    @SerialName("password") val password: String,
-    @SerialName("rol") val rol: String
+    @SerialName("first_name") val firstName: String,
+    @SerialName("last_name") val lastName: String,
+    @SerialName("email") val email: String,
+    @SerialName("password") val password: String? = null,
+    @SerialName("rol") val rol: String,
+    @SerialName("centro_escolar") val centroEscolar: CentroEscolarDTO? = null,
+    @SerialName("centro_escolar_id") val centroEscolarId: String? = null
 )

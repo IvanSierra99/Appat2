@@ -28,7 +28,7 @@
         <item name="android:textColorSecondary">@color/secondary_text</item>
         <item name="android:navigationBarColor">@color/primary</item>
         <item name="android:statusBarColor">@color/dark_primary</item>
-        <item name="android:divider">@color/light_primary</item>
+        <item name="android:divider">@color/divider</item>
     </style>
 
 </resources>

@@ -3,8 +3,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.appat.domain.entities.Usuario
 import com.example.appat.domain.usecases.CrearUsuarioUseCase
 import com.example.appat.domain.usecases.CrearUsuariInput
-import com.example.appat.core.AppResult
-import com.example.appat.core.mapBoth
 import com.example.appat.core.onFailure
 import com.example.appat.core.onSuccess
 import kotlinx.coroutines.launch

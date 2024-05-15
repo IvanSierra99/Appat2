@@ -2,7 +2,9 @@ package com.example.appat.ui.activities
 
 import AppatTheme
 import CrearUsuarioViewModel
+import MyAppTopBar
 import android.app.Activity
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -33,8 +35,10 @@ import androidx.compose.runtime.Composable
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,8 +49,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.appat.R
 import com.example.appat.domain.entities.Correo
 import com.example.appat.domain.entities.Usuario
 import com.example.appat.domain.usecases.CrearUsuariInput
@@ -56,37 +62,58 @@ class CrearUsuarioActivity : ComponentActivity() {
     private val crearUsuarioViewModel: CrearUsuarioViewModel by viewModel()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val sharedPreferences = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        val centroEscolarId = sharedPreferences.getString("centroEscolarId", null)
+        val nombreCentro = sharedPreferences.getString("nombreCentro", "Centro Escolar")
+        val token = sharedPreferences.getString("token", null)
+
         setContent {
-            CrearUsuarioScreenWithViewModel(crearUsuarioViewModel)
+            CrearUsuarioScreenWithViewModel(crearUsuarioViewModel, centroEscolarId, nombreCentro, token)
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CrearUsuarioScreenWithViewModel(viewModel: CrearUsuarioViewModel) {
+fun CrearUsuarioScreenWithViewModel(viewModel: CrearUsuarioViewModel, centroEscolarId: String?, nombreCentro: String?, token: String?) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val activity = LocalContext.current as? Activity
     // Obtenemos el ViewModel usando Koin
     Scaffold(
+        topBar = {
+            MyAppTopBar(
+                onMenuClick = {
+                    // Acciones al hacer clic en el botón del menú de navegación
+                },
+                schoolName = nombreCentro
+            )
+        },
         snackbarHost = { CustomSnackbarHost(snackbarHostState) },
     )  { innerPadding ->
         // The innerPadding adjusts the padding to avoid overlap with the scaffold's app bars or snackbar
-        Box(
+        Surface(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            contentAlignment = Alignment.Center,
+            color = colorResource(id = R.color.light_primary)
         ) {
-            CrearUsuarioScreen(viewModel) { usuarioCreado ->
-                scope.launch {
-                    val result = snackbarHostState.showSnackbar(
-                        message = "Usuario creado exitosamente",
-                        duration = SnackbarDuration.Short,
-                        actionLabel = "OK"
-                    )
-                    if (result == SnackbarResult.ActionPerformed || result == SnackbarResult.Dismissed) {
-                        activity?.finish()
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center,
+            ) {
+                CrearUsuarioScreen(viewModel, centroEscolarId, token) { usuarioCreado ->
+                    scope.launch {
+                        val result = snackbarHostState.showSnackbar(
+                            message = "Usuario creado exitosamente",
+                            duration = SnackbarDuration.Short,
+                            actionLabel = "OK"
+                        )
+                        if (result == SnackbarResult.ActionPerformed || result == SnackbarResult.Dismissed) {
+                            activity?.finish()
+                        }
                     }
                 }
             }
@@ -115,6 +142,8 @@ fun CustomSnackbarHost(snackbarHostState: SnackbarHostState) {
 @Composable
 fun CrearUsuarioScreen(
     crearUsuarioViewModel: CrearUsuarioViewModel,
+    centroEscolarId: String?,
+    token: String?,
     onUsuarioCreado: (Usuario) -> Unit
 ) {
     var nombre by remember { mutableStateOf("") }
@@ -162,14 +191,18 @@ fun CrearUsuarioScreen(
             value = apellido1,
             onValueChange = { apellido1 = it },
             label = { Text("Apellido") },
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
             isError = apellido1.isEmpty()
         )
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
             label = { Text("Correo electrónico") },
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             isError = !Correo.isValidEmail(email) || email.isEmpty()
         )
@@ -185,7 +218,9 @@ fun CrearUsuarioScreen(
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = !expanded },
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
         ) {
             TextField(
                 readOnly = true,
@@ -198,7 +233,9 @@ fun CrearUsuarioScreen(
                         contentDescription = if (expanded) "Collapse menu" else "Expand menu"
                     )
                 },
-                modifier = Modifier.menuAnchor().fillMaxWidth()
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
             )
             ExposedDropdownMenu(
                 expanded = expanded,
@@ -227,7 +264,9 @@ fun CrearUsuarioScreen(
                         nombre = nombre,
                         apellido1 = apellido1,
                         correo = email,
-                        rol = rol
+                        rol = rol,
+                        centroEscolarId = centroEscolarId,
+                        token = token
                     )
                     crearUsuarioViewModel.createUser(
                         input = inputUsuario,
