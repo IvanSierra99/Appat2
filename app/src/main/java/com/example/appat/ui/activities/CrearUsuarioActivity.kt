@@ -122,7 +122,7 @@ fun CrearUsuarioScreenWithViewModel(viewModel: CrearUsuarioViewModel, centroEsco
 }
 
 @Composable
-fun CustomSnackbarHost(snackbarHostState: SnackbarHostState) {
+private fun CustomSnackbarHost(snackbarHostState: SnackbarHostState) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center

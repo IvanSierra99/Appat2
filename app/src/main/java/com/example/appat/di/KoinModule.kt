@@ -21,7 +21,11 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 import com.example.appat.domain.usecases.IniciarSesionUseCase
 import com.example.appat.domain.usecases.IniciarSesionUseCaseImpl
+import com.example.appat.domain.usecases.ModificarUsuarioUseCase
+import com.example.appat.domain.usecases.ModificarUsuarioUseCaseImpl
+import com.example.appat.ui.viewmodel.EditUserViewModel
 import com.example.appat.ui.viewmodel.LoginViewModel
+import com.example.appat.ui.viewmodel.UserManagementViewModel
 import org.koin.android.ext.koin.androidContext
 
 val appModule = module {
@@ -59,10 +63,12 @@ val appModule = module {
 
     factory<CrearUsuarioUseCase> { CrearUsuarioUseCaseImpl(usuarioRepository = get()) }
     factory<IniciarSesionUseCase> { IniciarSesionUseCaseImpl(usuarioRepository = get()) }
+    factory<ModificarUsuarioUseCase> { ModificarUsuarioUseCaseImpl(usuarioRepository = get()) }
 
     viewModel { CrearUsuarioViewModel(get()) }
     viewModel { LoginViewModel(get()) }
-
+    viewModel { UserManagementViewModel(get()) }
+    viewModel { EditUserViewModel(get()) }
 
 }
 

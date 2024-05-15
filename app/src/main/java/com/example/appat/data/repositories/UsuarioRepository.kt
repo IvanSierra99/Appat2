@@ -13,6 +13,10 @@ import kotlinx.serialization.SerializationException
 interface UsuarioRepository {
     suspend fun createUser(usuario: Usuario): Usuario
     suspend fun login(username: String, password: String): Usuario
+    suspend fun getUsersByCentroEscolar(centroEscolarId: String, token: String?): List<Usuario>
+    suspend fun updateUser(usuario: Usuario): Usuario
+    suspend fun getUserById(userId: String, token: String?): Usuario
+
 }
 
 class UsuarioRepositoryImpl(
@@ -48,6 +52,35 @@ class UsuarioRepositoryImpl(
         } catch (e: Exception) {
             Log.d("LoginRepo", "Attempting to login with username: $username")
             throw Exception("Login failed: ${e.localizedMessage}")
+        }
+    }
+
+    override suspend fun getUsersByCentroEscolar(centroEscolarId: String, token: String?): List<Usuario> {
+        try {
+            val response = apiService.getUsersByCentroEscolar(centroEscolarId, token)
+            return response.map { it.toDomain() }
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    override suspend fun updateUser(usuario: Usuario): Usuario {
+        val token = usuario.token
+        val usuarioDTO = usuario.toDTO()
+        try {
+            val updatedUsuarioDTO = apiService.updateUsuario(usuarioDTO.userId, usuarioDTO, token)
+            return updatedUsuarioDTO.toDomain()
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    override suspend fun getUserById(userId: String, token: String?): Usuario {
+        try {
+            val usuarioDTO = apiService.getUserById(userId, token)
+            return usuarioDTO.toDomain(token)
+        } catch (e: Exception) {
+            throw e
         }
     }
 

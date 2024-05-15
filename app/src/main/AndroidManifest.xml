@@ -35,6 +35,12 @@
         <activity
             android:name=".ui.activities.CrearUsuarioActivity"
             android:theme="@style/AppatTheme"/>
+        <activity
+            android:name=".ui.activities.UserManagementActivity"
+            android:theme="@style/AppatTheme"/>
+        <activity
+            android:name=".ui.activities.EditUserActivity"
+            android:theme="@style/AppatTheme"/>
     </application>
 
 </manifest>

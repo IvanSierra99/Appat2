@@ -60,11 +60,11 @@ class AdminMainActivity : ComponentActivity() {
                     ) {
                         Button(
                             onClick = {
-                                context?.startActivity(Intent(context, CrearUsuarioActivity::class.java))
+                                context?.startActivity(Intent(context, UserManagementActivity::class.java))
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Crear Usuario")
+                            Text("Gestión de Usuarios")
                         }
                     }
                 }

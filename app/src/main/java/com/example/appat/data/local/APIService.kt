@@ -1,14 +1,20 @@
 package com.example.appat.data.local
 import android.util.Log
-import io.ktor.client.*
+import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.call.receive
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.client.utils.EmptyContent.contentType
-import io.ktor.http.*
+import io.ktor.client.request.get
+import io.ktor.client.request.headers
+import io.ktor.client.request.patch
+import io.ktor.client.request.post
+import io.ktor.client.request.put
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 import io.ktor.util.InternalAPI
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 class ApiService(private val client: HttpClient) {
@@ -31,13 +37,40 @@ class ApiService(private val client: HttpClient) {
         return json.decodeFromString(response.body<String>())
     }
 
+    suspend fun getUsersByCentroEscolar(centroEscolarId: String, token: String?): List<UsuarioDTO> {
+        val response: HttpResponse = client.get("$baseUrl/usuarios/?centro_escolar_id=$centroEscolarId") {
+            if (token != null) {
+                headers {
+                    append(HttpHeaders.Authorization, "Token $token")
+                }
+            }
+        }
+        return json.decodeFromString(response.bodyAsText())
+    }
+
     @OptIn(InternalAPI::class)
-    suspend fun updateUsuario(id: Int, usuario: UsuarioDTO): UsuarioDTO {
-        val response: HttpResponse = client.put("$baseUrl/usuarios/$id") {
+    suspend fun updateUsuario(id: String, usuario: UsuarioDTO, token: String?): UsuarioDTO {
+        val response: HttpResponse = client.patch("$baseUrl/usuarios/$id/") {
             contentType(ContentType.Application.Json)
-            body = usuario
+            setBody(usuario)
+            if (token != null) {
+                headers {
+                    append(HttpHeaders.Authorization, "Token $token")
+                }
+            }
         }
         return json.decodeFromString(response.body<String>())
+    }
+
+    suspend fun getUserById(userId: String, token: String?): UsuarioDTO {
+        val response: HttpResponse = client.get("$baseUrl/usuarios/$userId/") {
+            if (token != null) {
+                headers {
+                    append(HttpHeaders.Authorization, "Token $token")
+                }
+            }
+        }
+        return json.decodeFromString(response.bodyAsText())
     }
 
     suspend fun login(username: String, password: String): LoginResponse {
