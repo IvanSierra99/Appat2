@@ -39,7 +39,7 @@ data class ApellidoOpcional(val apellido: String?) {
 }
 
 
-data class Username private constructor(val username: String) {
+data class Username constructor(val username: String) {
     companion object {
         // Genera un username a partir del nombre y el primer apellido
         fun fromNameAndSurname(nombre: String, apellido: String): Username {

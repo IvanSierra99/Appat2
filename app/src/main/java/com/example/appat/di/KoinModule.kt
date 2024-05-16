@@ -7,6 +7,8 @@ import com.example.appat.data.repositories.UsuarioRepository
 import com.example.appat.data.repositories.UsuarioRepositoryImpl
 import com.example.appat.domain.usecases.CrearUsuarioUseCase
 import com.example.appat.domain.usecases.CrearUsuarioUseCaseImpl
+import com.example.appat.domain.usecases.EliminarUsuarioUseCase
+import com.example.appat.domain.usecases.EliminarUsuarioUseCaseImpl
 import io.ktor.client.HttpClient
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
@@ -24,6 +26,7 @@ import com.example.appat.domain.usecases.IniciarSesionUseCaseImpl
 import com.example.appat.domain.usecases.ModificarUsuarioUseCase
 import com.example.appat.domain.usecases.ModificarUsuarioUseCaseImpl
 import com.example.appat.ui.viewmodel.EditUserViewModel
+import com.example.appat.ui.viewmodel.EliminarUsuarioViewModel
 import com.example.appat.ui.viewmodel.LoginViewModel
 import com.example.appat.ui.viewmodel.UserManagementViewModel
 import org.koin.android.ext.koin.androidContext
@@ -64,11 +67,13 @@ val appModule = module {
     factory<CrearUsuarioUseCase> { CrearUsuarioUseCaseImpl(usuarioRepository = get()) }
     factory<IniciarSesionUseCase> { IniciarSesionUseCaseImpl(usuarioRepository = get()) }
     factory<ModificarUsuarioUseCase> { ModificarUsuarioUseCaseImpl(usuarioRepository = get()) }
+    factory<EliminarUsuarioUseCase> { EliminarUsuarioUseCaseImpl(usuarioRepository = get()) }
 
     viewModel { CrearUsuarioViewModel(get()) }
     viewModel { LoginViewModel(get()) }
     viewModel { UserManagementViewModel(get()) }
     viewModel { EditUserViewModel(get()) }
+    viewModel { EliminarUsuarioViewModel(get()) }
 
 }
 

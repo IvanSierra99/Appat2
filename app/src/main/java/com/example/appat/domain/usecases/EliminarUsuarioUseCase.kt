@@ -1,20 +1,20 @@
 package com.example.appat.domain.usecases
 
-interface EliminarUsuarioUseCase {
+import com.example.appat.core.AppResult
+import com.example.appat.core.UseCaseSuspend
+import com.example.appat.core.appRunCatching
+import com.example.appat.data.repositories.UsuarioRepository
 
-    fun eliminarUsuario(idUsuario: String) {
-        // Implementar la lógica para eliminar un usuario del sistema
-        // Buscar al usuario por su ID
-        // Eliminar al usuario de la base de datos o servicio de autenticación
-        // En caso de éxito, notificar al usuario y registrar la acción
-        // En caso de fallo, mostrar mensajes de error correspondientes
-    }
-}
+interface EliminarUsuarioUseCase : UseCaseSuspend<EliminarUsuarioInput, AppResult<Unit, Throwable>>
+
+data class EliminarUsuarioInput(val idUsuario: String, val token: String?)
+
 class EliminarUsuarioUseCaseImpl(
-
-): EliminarUsuarioUseCase {
-
-    override fun eliminarUsuario(idUsuario: String) {
-        //super.eliminarUsuario(idUsuario)
+    private val usuarioRepository: UsuarioRepository
+) : EliminarUsuarioUseCase {
+    override suspend fun invoke(input: EliminarUsuarioInput): AppResult<Unit, Throwable> {
+        return appRunCatching {
+            usuarioRepository.deleteUser(input.idUsuario, input.token)
+        }
     }
 }

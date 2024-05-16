@@ -69,6 +69,15 @@ class UserManagementActivity : ComponentActivity() {
         // Cargar los usuarios del centro escolar del administrador
         centroEscolarId?.let { userManagementViewModel.obtenerUsuariosPorCentro(it, token) }
     }
+    override fun onResume() {
+        super.onResume()
+        val sharedPreferences = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        val centroEscolarId = sharedPreferences.getString("centroEscolarId", null)
+        val token = sharedPreferences.getString("token", null)
+
+        // Volver a cargar los usuarios al volver a la actividad
+        centroEscolarId?.let { userManagementViewModel.obtenerUsuariosPorCentro(it, token) }
+    }
 }
 
 @Composable

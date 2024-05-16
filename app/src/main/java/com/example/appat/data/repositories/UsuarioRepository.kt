@@ -16,6 +16,7 @@ interface UsuarioRepository {
     suspend fun getUsersByCentroEscolar(centroEscolarId: String, token: String?): List<Usuario>
     suspend fun updateUser(usuario: Usuario): Usuario
     suspend fun getUserById(userId: String, token: String?): Usuario
+    suspend fun deleteUser(userId: String, token: String?)
 
 }
 
@@ -83,6 +84,13 @@ class UsuarioRepositoryImpl(
             throw e
         }
     }
+    override suspend fun deleteUser(userId: String, token: String?) {
+        try {
+            apiService.deleteUser(userId, token)
+        } catch (e: Exception) {
+            throw e
+        }
+    }
 
     private fun Usuario.toDTO(): UsuarioDTO {
         val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
@@ -94,6 +102,7 @@ class UsuarioRepositoryImpl(
             email = this.correo.correo,
             password = this.contraseña?.contraseña,
             rol = this.rol.rol,
+            centroEscolar = this.centroEscolar?.toDTO(),
             centroEscolarId = this.centroEscolar?.centroId
         )
     }

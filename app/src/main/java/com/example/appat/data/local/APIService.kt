@@ -1,12 +1,13 @@
 package com.example.appat.data.local
+
 import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
-import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
@@ -16,6 +17,10 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.util.InternalAPI
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.put
+
 
 class ApiService(private val client: HttpClient) {
     private val baseUrl = "http://192.168.1.128:8000"
@@ -50,9 +55,35 @@ class ApiService(private val client: HttpClient) {
 
     @OptIn(InternalAPI::class)
     suspend fun updateUsuario(id: String, usuario: UsuarioDTO, token: String?): UsuarioDTO {
+        val updateData = buildJsonObject {
+            put("userId", usuario.userId)
+            put("username", usuario.username)
+            if (usuario.firstName.isNotEmpty()) {
+                put("firstName", usuario.firstName)
+            }
+            if (usuario.lastName.isNotEmpty()) {
+                put("lastName", usuario.lastName)
+            }
+            if (usuario.email.isNotEmpty()) {
+                put("email", usuario.email)
+            }
+            if (usuario.rol.isNotEmpty()) {
+                put("rol", usuario.rol)
+            }
+            if (usuario.centroEscolar != null) {
+                put("centro_escolar", Json.encodeToJsonElement(usuario.centroEscolar))
+            }
+            if (usuario.centroEscolarId != null) {
+                put("centro_escolar_id", usuario.centroEscolarId)
+            }
+            if (usuario.password != null) {
+                put("password", usuario.password)
+            }
+        }
+
         val response: HttpResponse = client.patch("$baseUrl/usuarios/$id/") {
             contentType(ContentType.Application.Json)
-            setBody(usuario)
+            setBody(updateData.toString())
             if (token != null) {
                 headers {
                     append(HttpHeaders.Authorization, "Token $token")
@@ -73,6 +104,15 @@ class ApiService(private val client: HttpClient) {
         return json.decodeFromString(response.bodyAsText())
     }
 
+    suspend fun deleteUser(userId: String, token: String?) {
+        client.delete("$baseUrl/usuarios/$userId/") {
+            if (token != null) {
+                headers {
+                    append(HttpHeaders.Authorization, "Token $token")
+                }
+            }
+        }
+    }
     suspend fun login(username: String, password: String): LoginResponse {
         val loginUrl = "$baseUrl/api-token-auth/"
         Log.d("LoginAPI1", "Attempting to login with username: $username")

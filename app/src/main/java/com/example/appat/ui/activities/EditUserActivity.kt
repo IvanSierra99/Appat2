@@ -27,18 +27,15 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.appat.R
-import com.example.appat.domain.entities.Apellido
-import com.example.appat.domain.entities.Correo
-import com.example.appat.domain.entities.Nombre
-import com.example.appat.domain.entities.Rol
-import com.example.appat.domain.entities.Usuario
-import com.example.appat.domain.entities.Contraseña
+import com.example.appat.domain.entities.*
 import com.example.appat.ui.viewmodel.EditUserViewModel
+import com.example.appat.ui.viewmodel.EliminarUsuarioViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class EditUserActivity : ComponentActivity() {
     private val editUserViewModel: EditUserViewModel by viewModel()
+    private val eliminarUsuarioViewModel: EliminarUsuarioViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,15 +44,19 @@ class EditUserActivity : ComponentActivity() {
         val token = sharedPreferences.getString("token", null)
 
         setContent {
-            EditUserScreenWithViewModel(editUserViewModel, userId, token)
+            EditUserScreenWithViewModel(editUserViewModel, eliminarUsuarioViewModel, userId, token)
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditUserScreenWithViewModel(viewModel: EditUserViewModel, userId: String?, token: String?) {
-    val snackbarHostState = remember { SnackbarHostState() }
+fun EditUserScreenWithViewModel(
+    editUserViewModel: EditUserViewModel,
+    eliminarUsuarioViewModel: EliminarUsuarioViewModel,
+    userId: String?,
+    token: String?
+) {    val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current as? Activity
 
@@ -65,42 +66,24 @@ fun EditUserScreenWithViewModel(viewModel: EditUserViewModel, userId: String?, t
     var rol by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-    val roles = listOf("ADMINISTRADOR", "COORDINADOR", "MONITOR")
+    val roles = listOf("COORDINADOR", "MONITOR") //AÑADIR ADMINISTRADOR
     var expanded by remember { mutableStateOf(false) }
+    var passwordVisibility by remember { mutableStateOf(false) }
+    var confirmPasswordVisibility by remember { mutableStateOf(false) }
 
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
 
     var emailError by remember { mutableStateOf(false) }
-    var passwordError by remember { mutableStateOf(false) }
-    var passwordVisibility by remember { mutableStateOf(false) }
-    var confirmPasswordVisibility by remember { mutableStateOf(false) }
-
-    val isFormValid by remember { derivedStateOf {
-            !passwordError && !emailError
-        }
-    }
-
-    LaunchedEffect(email) {
-        if (email.isNotEmpty() && !Correo.isValidEmail(email)) {
-            emailError = true
-        } else {
-            emailError = false
-        }
-    }
-
-    LaunchedEffect(password, confirmPassword) {
-        passwordError = password.isNotEmpty() && password != confirmPassword
-    }
 
     LaunchedEffect(userId) {
         userId?.let {
-            viewModel.obtenerUsuarioPorId(it, token)
+            editUserViewModel.obtenerUsuarioPorId(it, token)
         }
     }
 
-    val usuario by viewModel.usuario.collectAsState()
+    val usuario by editUserViewModel.usuario.collectAsState()
 
     LaunchedEffect(usuario) {
         usuario?.let {
@@ -108,6 +91,13 @@ fun EditUserScreenWithViewModel(viewModel: EditUserViewModel, userId: String?, t
             apellido1 = it.apellido1.apellido
             email = it.correo.correo
             rol = it.rol.rol
+        }
+    }
+
+    val isFormValid = remember {
+        derivedStateOf {
+            email.isEmpty() || Correo.isValidEmail(email) &&
+                    password == confirmPassword
         }
     }
 
@@ -163,11 +153,50 @@ fun EditUserScreenWithViewModel(viewModel: EditUserViewModel, userId: String?, t
                         .fillMaxWidth()
                         .padding(top = 8.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    isError = emailError
+                    isError = email.isNotEmpty() && !Correo.isValidEmail(email)
                 )
-                if (emailError) {
+                if (emailError && email.isNotEmpty() && !Correo.isValidEmail(email)) {
                     Text(
                         "El formato del correo electrónico es incorrecto.",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 4.dp, start = 16.dp)
+                    )
+                }
+
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Contraseña") },
+                    visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        val image = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                        IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
+                            Icon(imageVector = image, contentDescription = "Toggle password visibility")
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                )
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    label = { Text("Confirmar Contraseña") },
+                    visualTransformation = if (confirmPasswordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        val image = if (confirmPasswordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                        IconButton(onClick = { confirmPasswordVisibility = !confirmPasswordVisibility }) {
+                            Icon(imageVector = image, contentDescription = "Toggle confirm password visibility")
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                )
+                if (password != confirmPassword) {
+                    Text(
+                        "Las contraseñas no coinciden.",
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(top = 4.dp, start = 16.dp)
@@ -210,66 +239,25 @@ fun EditUserScreenWithViewModel(viewModel: EditUserViewModel, userId: String?, t
                     }
                 }
 
-                // TextFields para la contraseña
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = { Text("Contraseña nueva") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        val image = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                        IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
-                            Icon(imageVector = image, contentDescription = "Toggle password visibility")
-                        }
-                    },
-                    isError = passwordError
-                )
-                OutlinedTextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    label = { Text("Confirmar contraseña nueva") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    visualTransformation = if (confirmPasswordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        val image = if (confirmPasswordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                        IconButton(onClick = { confirmPasswordVisibility = !confirmPasswordVisibility }) {
-                            Icon(imageVector = image, contentDescription = "Toggle confirm password visibility")
-                        }
-                    },
-                    isError = passwordError
-                )
-                if (passwordError) {
-                    Text(
-                        "Las contraseñas no coinciden.",
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(top = 4.dp, start = 16.dp)
-                    )
-                }
-
                 // Botón para modificar el usuario
                 Button(
                     modifier = Modifier.padding(top = 16.dp),
-                    enabled = isFormValid,
+                    enabled = isFormValid.value,
                     onClick = {
+                        emailError = email.isNotEmpty() && !Correo.isValidEmail(email)
                         if (!emailError) {
                             val inputUsuario = Usuario(
-                                userId = userId ?: "",
-                                nombre = Nombre(nombre),
-                                apellido1 = Apellido(apellido1),
-                                correo = if (email.isNotEmpty()) Correo(email) else usuario!!.correo,
-                                rol = Rol(rol),
+                                userId = usuario?.userId ?: "",
+                                nombre = Nombre(if (nombre.isNotEmpty()) nombre else usuario?.nombre?.nombre ?: ""),
+                                apellido1 = Apellido(if (apellido1.isNotEmpty()) apellido1 else usuario?.apellido1?.apellido ?: ""),
+                                username = Username(usuario?.username?.username ?: ""),
+                                correo = if (email.isNotEmpty()) Correo(email) else usuario?.correo ?: Correo(""),
+                                rol = if (rol.isNotEmpty()) Rol(rol) else usuario?.rol ?: Rol(""),
                                 centroEscolar = usuario?.centroEscolar,
-                                token = token
-                            ).copy(contraseña = if (password.isNotEmpty()) Contraseña.crearNueva(password) else null)
-                            viewModel.modificarUsuario(
+                                token = token,
+                                contraseña = if (password.isNotEmpty()) Contraseña.crearNueva(password) else null
+                            )
+                            editUserViewModel.modificarUsuario(
                                 inputUsuario,
                                 onSuccess = {
                                     scope.launch {
@@ -292,6 +280,37 @@ fun EditUserScreenWithViewModel(viewModel: EditUserViewModel, userId: String?, t
                     }
                 ) {
                     Text("Modificar usuario")
+                }
+
+                Button(
+                    modifier = Modifier.padding(top = 16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                    onClick = {
+                        userId?.let {
+                            eliminarUsuarioViewModel.eliminarUsuario(
+                                it,
+                                token,
+                                onSuccess = {
+                                    scope.launch {
+                                        val result = snackbarHostState.showSnackbar(
+                                            message = "Usuario eliminado exitosamente",
+                                            duration = SnackbarDuration.Short,
+                                            actionLabel = "OK"
+                                        )
+                                        if (result == SnackbarResult.ActionPerformed || result == SnackbarResult.Dismissed) {
+                                            context?.finish()
+                                        }
+                                    }
+                                },
+                                onError = { error ->
+                                    showError = true
+                                    errorMessage = error.message.toString()
+                                }
+                            )
+                        }
+                    }
+                ) {
+                    Text("Eliminar usuario")
                 }
 
                 // Mostrar mensaje de error si es necesario
