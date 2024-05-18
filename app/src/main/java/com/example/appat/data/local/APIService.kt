@@ -23,7 +23,8 @@ import kotlinx.serialization.json.put
 
 
 class ApiService(private val client: HttpClient) {
-    private val baseUrl = "http://192.168.1.128:8000"
+    private val baseUrl = "http://192.168.1.135" +
+            ":8000"
     private val json = Json {
         ignoreUnknownKeys = true // Ignora las claves desconocidas en el JSON recibido
         isLenient = true // Permite comillas y comentarios más flexibles en JSON
@@ -136,5 +137,57 @@ class ApiService(private val client: HttpClient) {
             println("Exception during login: ${e.message}")
             throw e
         }
+    }
+
+    suspend fun createCurso(curso: CursoDTO, token: String?): CursoDTO {
+        val response: HttpResponse = client.post("$baseUrl/cursos/") {
+            contentType(ContentType.Application.Json)
+            setBody(curso)
+            if (token != null) {
+                headers { append(HttpHeaders.Authorization, "Token $token") }
+            }
+        }
+        return json.decodeFromString(response.bodyAsText())
+    }
+
+    suspend fun getCursosByCentroEscolar(centroEscolarId: String, token: String?): List<CursoDTO> {
+        val response: HttpResponse = client.get("$baseUrl/cursos/?centro_escolar_id=$centroEscolarId") {
+            if (token != null) {
+                headers { append(HttpHeaders.Authorization, "Token $token") }
+            }
+        }
+        return json.decodeFromString(response.bodyAsText())
+    }
+
+    suspend fun getCursoById(cursoId: String, token: String?): CursoDTO {
+        val response: HttpResponse = client.get("$baseUrl/cursos/$cursoId/") {
+            if (token != null) {
+                headers { append(HttpHeaders.Authorization, "Token $token") }
+            }
+        }
+        return json.decodeFromString(response.bodyAsText())
+    }
+
+    suspend fun updateCurso(curso: CursoDTO, token: String?): CursoDTO {
+        val response: HttpResponse = client.patch("$baseUrl/cursos/${curso.cursoId}/") {
+            contentType(ContentType.Application.Json)
+            setBody(curso)
+            if (token != null) {
+                headers { append(HttpHeaders.Authorization, "Token $token") }
+            }
+        }
+        return json.decodeFromString(response.bodyAsText())
+    }
+
+    // Clases
+    suspend fun createClase(clase: ClaseDTO, token: String?): ClaseDTO {
+        val response: HttpResponse = client.post("$baseUrl/clases/") {
+            contentType(ContentType.Application.Json)
+            setBody(clase)
+            if (token != null) {
+                headers { append(HttpHeaders.Authorization, "Token $token") }
+            }
+        }
+        return json.decodeFromString(response.bodyAsText())
     }
 }

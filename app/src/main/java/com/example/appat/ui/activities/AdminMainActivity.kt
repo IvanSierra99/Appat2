@@ -18,7 +18,6 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import com.example.appat.R
 
-
 class AdminMainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,7 +32,6 @@ class AdminMainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun AdminScreen(nombreCentro: String?) {
-        // Contexto local para manejar operaciones relacionadas con la UI, como iniciar una Activity
         val context = LocalContext.current as? Activity
         Scaffold(
             topBar = {
@@ -44,7 +42,7 @@ class AdminMainActivity : ComponentActivity() {
                     schoolName = nombreCentro
                 )
             },
-            content = {paddingValues ->
+            content = { paddingValues ->
                 Surface(
                     modifier = Modifier
                         .fillMaxSize()
@@ -65,6 +63,15 @@ class AdminMainActivity : ComponentActivity() {
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text("Gestión de Usuarios")
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = {
+                                context?.startActivity(Intent(context, ClaseManagementActivity::class.java))
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Gestión de Clases")
                         }
                     }
                 }

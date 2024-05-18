@@ -1,21 +1,43 @@
 package com.example.appat.domain.usecases
 
-interface CrearClaseUseCase {
+import com.example.appat.core.AppResult
+import com.example.appat.core.UseCaseSuspend
+import com.example.appat.core.appRunCatching
+import com.example.appat.data.repositories.ClaseRepository
+import com.example.appat.data.repositories.CursoRepository
+import com.example.appat.domain.entities.Clase
+import com.example.appat.domain.entities.Curso
 
-    // Describe la funcionalidad principal del caso de uso
-    fun crearClase(nombre: String) {
-        // Implementar la lógica para crear una nueva clase en el sistema
-        // Validar el nombre de la clase
-        // Guardar la información de la nueva clase en la base de datos
-        // En caso de éxito, notificar al usuario y registrar la acción
-        // En caso de fallo, mostrar mensajes de error correspondientes
-    }
+data class CrearClaseInput(val nombre: String, val cursoId: String, val token: String?)
+
+interface CrearClaseUseCase : UseCaseSuspend<CrearClaseInput, AppResult<Clase, Throwable>> {
+    suspend fun getCursosByCentroEscolar(centroEscolarId: String, token: String?): AppResult<List<Curso>, Throwable>
 }
 class CrearClaseUseCaseImpl(
+    private val claseRepository: ClaseRepository,
+    private val cursoRepository: CursoRepository
+) : CrearClaseUseCase {
+    override suspend fun invoke(input: CrearClaseInput): AppResult<Clase, Throwable> {
+        val clase = Clase(
+            nombre = input.nombre,
+            cursoId = input.cursoId
+        )
 
-): CrearClaseUseCase {
+        return appRunCatching {
+            // Create the class
+            val createdClase = claseRepository.createClase(clase, input.token)
 
-    override fun crearClase(nombre: String) {
-        //super.crearClase(nombre)
+            // Fetch the course, update its list of classes, and save the updated course
+            val curso = cursoRepository.getCursoById(input.cursoId, input.token)
+            val updatedCurso = curso.copy(clases = curso.clases + createdClase)
+            cursoRepository.updateCurso(updatedCurso, input.token)
+
+            createdClase
+        }
+    }
+    override suspend fun getCursosByCentroEscolar(centroEscolarId: String, token: String?): AppResult<List<Curso>, Throwable> {
+        return appRunCatching {
+            cursoRepository.getCursosByCentroEscolar(centroEscolarId, token)
+        }
     }
 }

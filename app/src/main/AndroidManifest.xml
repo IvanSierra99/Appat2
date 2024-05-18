@@ -41,6 +41,15 @@
         <activity
             android:name=".ui.activities.EditUserActivity"
             android:theme="@style/AppatTheme"/>
+        <activity
+            android:name=".ui.activities.ClaseManagementActivity"
+            android:theme="@style/AppatTheme"/>
+        <activity
+            android:name=".ui.activities.CrearClaseActivity"
+            android:theme="@style/AppatTheme"/>
+        <activity
+            android:name=".ui.activities.CrearCursoActivity"
+            android:theme="@style/AppatTheme"/>
     </application>
 
 </manifest>
