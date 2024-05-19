@@ -73,6 +73,15 @@ class AdminMainActivity : ComponentActivity() {
                         ) {
                             Text("Gestión de Clases")
                         }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = {
+                                context?.startActivity(Intent(context, AlumnoManagementActivity::class.java))
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Gestión de Alumnos")
+                        }
                     }
                 }
             }

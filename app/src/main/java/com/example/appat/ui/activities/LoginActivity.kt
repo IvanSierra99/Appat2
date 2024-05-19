@@ -63,12 +63,11 @@ fun LoginScreen(activity: LoginActivity, loginViewModel: LoginViewModel) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(id = R.drawable.logo),
+            painter = painterResource(id = R.drawable.logo_x),
             contentDescription = "App Icon",
             modifier = Modifier
                 .size(300.dp)  // Tamaño del icono, ajusta según necesites
                 .align(Alignment.CenterHorizontally)  // Centrar horizontalmente en la columna
-                .padding(start = 16.dp)
         )
         OutlinedTextField(
             value = username,

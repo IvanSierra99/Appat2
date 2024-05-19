@@ -15,7 +15,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.util.InternalAPI
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
@@ -23,13 +22,14 @@ import kotlinx.serialization.json.put
 
 
 class ApiService(private val client: HttpClient) {
-    private val baseUrl = "http://192.168.1.135" +
+    private val baseUrl = "http://192.168.1.138" +
             ":8000"
     private val json = Json {
         ignoreUnknownKeys = true // Ignora las claves desconocidas en el JSON recibido
         isLenient = true // Permite comillas y comentarios más flexibles en JSON
     }
 
+    // Usuario
     suspend fun createUsuario(usuario: UsuarioDTO, token: String?): UsuarioDTO {
         val response: HttpResponse = client.post("$baseUrl/usuarios/") {
             contentType(ContentType.Application.Json)
@@ -54,7 +54,6 @@ class ApiService(private val client: HttpClient) {
         return json.decodeFromString(response.bodyAsText())
     }
 
-    @OptIn(InternalAPI::class)
     suspend fun updateUsuario(id: String, usuario: UsuarioDTO, token: String?): UsuarioDTO {
         val updateData = buildJsonObject {
             put("userId", usuario.userId)
@@ -139,6 +138,7 @@ class ApiService(private val client: HttpClient) {
         }
     }
 
+    // Curso
     suspend fun createCurso(curso: CursoDTO, token: String?): CursoDTO {
         val response: HttpResponse = client.post("$baseUrl/cursos/") {
             contentType(ContentType.Application.Json)
@@ -189,5 +189,89 @@ class ApiService(private val client: HttpClient) {
             }
         }
         return json.decodeFromString(response.bodyAsText())
+    }
+
+    suspend fun getClaseById(claseId: String, token: String?): ClaseDTO {
+        val response: HttpResponse = client.get("$baseUrl/clases/$claseId/") {
+            if (token != null) {
+                headers { append(HttpHeaders.Authorization, "Token $token") }
+            }
+        }
+        return json.decodeFromString(response.bodyAsText())
+    }
+
+    suspend fun updateClase(clase: ClaseDTO, token: String?): ClaseDTO {
+        val response: HttpResponse = client.patch("$baseUrl/clases/${clase.claseId}/") {
+            contentType(ContentType.Application.Json)
+            setBody(clase)
+            if (token != null) {
+                headers { append(HttpHeaders.Authorization, "Token $token") }
+            }
+        }
+        return json.decodeFromString(response.bodyAsText())
+    }
+
+    suspend fun getClasesByCentroEscolar(centroEscolarId: String, token: String?): List<ClaseDTO> {
+        val response: HttpResponse = client.get("$baseUrl/clases/?centro_escolar_id=$centroEscolarId") {
+            if (token != null) {
+                headers { append(HttpHeaders.Authorization, "Token $token") }
+            }
+        }
+        return json.decodeFromString(response.bodyAsText())
+    }
+
+    // Alergia
+    suspend fun getAlergias(token: String?): List<AlergiaDTO> {
+        val response: HttpResponse = client.get("$baseUrl/alergias/") {
+            if (token != null) {
+                headers { append(HttpHeaders.Authorization, "Token $token") }
+            }
+        }
+        return json.decodeFromString(response.bodyAsText())
+    }
+
+    // Alumno
+    suspend fun createAlumno(alumno: AlumnoDTO, token: String?): AlumnoDTO {
+        val response: HttpResponse = client.post("$baseUrl/alumnos/") {
+            contentType(ContentType.Application.Json)
+            setBody(alumno)
+            if (token != null) {
+                headers { append(HttpHeaders.Authorization, "Token $token") }
+            }
+        }
+        return json.decodeFromString(response.bodyAsText())
+    }
+    suspend fun getAlumnoById(alumnoId: String, token: String?): AlumnoDTO {
+        val response: HttpResponse = client.get("$baseUrl/alumnos/$alumnoId/") {
+            if (token != null) {
+                headers {
+                    append(HttpHeaders.Authorization, "Token $token")
+                }
+            }
+        }
+        return json.decodeFromString(response.bodyAsText())
+    }
+
+    suspend fun updateAlumno(alumno: AlumnoDTO, token: String?): AlumnoDTO {
+        val response: HttpResponse = client.patch("$baseUrl/alumnos/${alumno.alumnoId}/") {
+            contentType(ContentType.Application.Json)
+            setBody(alumno)
+            if (token != null) {
+                headers {
+                    append(HttpHeaders.Authorization, "Token $token")
+                }
+            }
+        }
+        return json.decodeFromString(response.bodyAsText())
+    }
+
+    suspend fun deleteAlumno(alumnoId: String, token: String?) {
+        client.delete("$baseUrl/alumnos/$alumnoId/") {
+            if (token != null) {
+                headers {
+                    append(HttpHeaders.Authorization, "Token $token")
+                }
+            }
+        }
     }
 }

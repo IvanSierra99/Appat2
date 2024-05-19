@@ -15,49 +15,46 @@ interface CursoRepository {
 
 class CursoRepositoryImpl(private val apiService: ApiService) : CursoRepository {
     override suspend fun createCurso(curso: Curso, token: String?): Curso {
-        val cursoDTO = curso.toDTO()
+        val cursoDTO = CursoMapper.toDTO(curso)
         val createdCursoDTO = apiService.createCurso(cursoDTO, token)
-        return createdCursoDTO.toDomain()
+        return CursoMapper.toDomain(createdCursoDTO)
     }
 
     override suspend fun getCursosByCentroEscolar(centroEscolarId: String, token: String?): List<Curso> {
         val cursoDTOs = apiService.getCursosByCentroEscolar(centroEscolarId, token)
-        return cursoDTOs.map { it.toDomain() }
+        return cursoDTOs.map { CursoMapper.toDomain(it) }
     }
 
     override suspend fun getCursoById(cursoId: String, token: String?): Curso {
         val cursoDTO = apiService.getCursoById(cursoId, token)
-        return cursoDTO.toDomain()
+        return CursoMapper.toDomain(cursoDTO)
     }
 
     override suspend fun updateCurso(curso: Curso, token: String?): Curso {
-        val cursoDTO = CursoDTO(
-            cursoId = curso.cursoId,
-            nombre = curso.nombre,
-            etapa = curso.etapa,
-            centroEscolarId = curso.centroEscolarId,
-            clases = curso.clases?.map { ClaseDTO(claseId = it.claseId, nombre = it.nombre, cursoId = it.cursoId) } ?: emptyList()
-        )
+        val cursoDTO = CursoMapper.toDTO(curso)
         val updatedCursoDTO = apiService.updateCurso(cursoDTO, token)
-        return updatedCursoDTO.toDomain()
+        return CursoMapper.toDomain(updatedCursoDTO)
     }
-    private fun Curso.toDTO(): CursoDTO {
-        return CursoDTO(
-            cursoId = this.cursoId,
-            nombre = this.nombre,
-            etapa = this.etapa,
-            centroEscolarId =this.centroEscolarId,
-            clases = this.clases?.map { ClaseDTO(claseId = it.claseId, nombre = it.nombre, cursoId = it.cursoId) } ?: emptyList()
-        )
+    object CursoMapper {
+        fun toDTO(curso: Curso): CursoDTO {
+            return CursoDTO(
+                cursoId = curso.cursoId,
+                nombre = curso.nombre,
+                etapa = curso.etapa,
+                centroEscolarId = curso.centroEscolarId,
+                clases = curso.clases?.map { ClaseRepositoryImpl.ClaseMapper.toDTO(it) } ?: emptyList()
+            )
+        }
+
+        fun toDomain(cursoDTO: CursoDTO): Curso {
+            return Curso(
+                cursoId = cursoDTO.cursoId,
+                nombre = cursoDTO.nombre,
+                etapa = cursoDTO.etapa,
+                centroEscolarId = cursoDTO.centroEscolarId,
+                clases = cursoDTO.clases?.map { ClaseRepositoryImpl.ClaseMapper.toDomain(it) }?.toMutableList() ?: mutableListOf()
+            )
+        }
     }
 
-    private fun CursoDTO.toDomain(): Curso {
-        return Curso(
-            cursoId = this.cursoId,
-            nombre = this.nombre,
-            etapa = this.etapa,
-            centroEscolarId = this.centroEscolarId,
-            clases = this.clases?.map { Clase(claseId = it.claseId, nombre = it.nombre, cursoId = this.cursoId) } ?: emptyList()
-        )
-    }
 }

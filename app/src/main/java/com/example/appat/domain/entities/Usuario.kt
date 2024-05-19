@@ -42,10 +42,17 @@ data class ApellidoOpcional(val apellido: String?) {
 data class Username constructor(val username: String) {
     companion object {
         // Genera un username a partir del nombre y el primer apellido
-        fun fromNameAndSurname(nombre: String, apellido: String): Username {
+        /*fun fromNameAndSurname(nombre: String, apellido: String): Username {
             val base = nombre.take(4).lowercase() + apellido.take(3).lowercase()
             val numeroAleatorio = (10..99).random()
             return Username(base + numeroAleatorio.toString())
+        }*/
+        //Primera Letra mayúscula
+        fun fromNameAndSurname(nombre: String, apellido: String): Username {
+            val base = nombre.take(4).lowercase() + apellido.take(3).lowercase()
+            val baseCapitalized = base.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+            val numeroAleatorio = (10..99).random()
+            return Username(baseCapitalized + numeroAleatorio.toString())
         }
 
         // Crea un Username desde un string completo

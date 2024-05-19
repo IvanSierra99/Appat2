@@ -7,5 +7,6 @@ import kotlinx.serialization.Serializable
 data class ClaseDTO(
     @SerialName("claseId") val claseId: String,
     @SerialName("nombre") val nombre: String,
-    @SerialName("curso_id") val cursoId: String? = ""
+    @SerialName("curso_id") val cursoId: String? = "",
+    @SerialName("alumnos") val alumnos: List<AlumnoDTO> = emptyList()
 )

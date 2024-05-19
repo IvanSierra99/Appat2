@@ -6,11 +6,9 @@ import java.util.UUID
 data class Alumno(
     val alumnoId: String = UUID.randomUUID().toString(),
     val nombre: String,
-    val apellido1: String,
-    val apellido2: String,
+    val apellido: String,
     val claseId: String,
-    val alergias: List<Alergia> = emptyList(),
-    val intolerancias: List<Alergia> = emptyList()
+    val alergias: List<Alergia> = emptyList()
 ) {
 
 }

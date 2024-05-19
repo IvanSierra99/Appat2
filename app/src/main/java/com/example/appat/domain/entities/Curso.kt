@@ -7,5 +7,5 @@ data class Curso(
     val nombre: String,
     val etapa: String,
     val centroEscolarId: String?,
-    val clases: List<Clase> = listOf()
+    val clases: MutableList<Clase>? = mutableListOf()
 )

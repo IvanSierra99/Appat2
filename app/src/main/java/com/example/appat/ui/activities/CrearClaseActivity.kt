@@ -79,9 +79,6 @@ class CrearClaseActivity : ComponentActivity() {
                                 duration = SnackbarDuration.Short,
                                 actionLabel = "OK"
                             )
-                            if (result == SnackbarResult.ActionPerformed || result == SnackbarResult.Dismissed) {
-                                activity?.finish()
-                            }
                         }
                     }
                 }
@@ -130,6 +127,17 @@ class CrearClaseActivity : ComponentActivity() {
 
         val cursos by viewModel.cursos.collectAsState()
 
+        // Mapa de conversión para las etapas
+        val etapaMapping = mapOf(
+            "INFANTIL" to "Infantil",
+            "PRIMARIA" to "Primaria",
+            "ESO" to "ESO",
+            "BACHILLERATO" to "Bachillerato",
+            "CICLO_INICIAL" to "Ciclo Inicial",
+            "CICLO_MEDIO" to "Ciclo Medio",
+            "CICLO_SUPERIOR" to "Ciclo Superior"
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -157,7 +165,7 @@ class CrearClaseActivity : ComponentActivity() {
             ) {
                 TextField(
                     readOnly = true,
-                    value = cursos.find { it.cursoId == cursoId }?.nombre ?: "Seleccione un curso",
+                    value = cursos.find { it.cursoId == cursoId }?.let { "${it.nombre} (${etapaMapping[it.etapa] ?: it.etapa})" } ?: "Seleccione un curso",
                     onValueChange = {},
                     label = { Text("Curso") },
                     trailingIcon = {
@@ -175,13 +183,13 @@ class CrearClaseActivity : ComponentActivity() {
                     onDismissRequest = { expanded = false },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    cursos.forEach { curso ->
+                    cursos.sortedBy { it.etapa }.forEach { curso ->
                         DropdownMenuItem(
                             onClick = {
                                 cursoId = curso.cursoId
                                 expanded = false
                             },
-                            text = { Text(curso.nombre) }
+                            text = { Text("${curso.nombre} (${etapaMapping[curso.etapa] ?: curso.etapa})") }
                         )
                     }
                 }
@@ -193,6 +201,8 @@ class CrearClaseActivity : ComponentActivity() {
                         onSuccess = { claseCreada ->
                             onClaseCreada(claseCreada)
                             showError = false  // Reset error visibility
+                            nombreClase = ""
+                            cursoId = ""
                         },
                         onError = { error ->
                             showError = true
@@ -215,4 +225,5 @@ class CrearClaseActivity : ComponentActivity() {
             }
         }
     }
+
 }

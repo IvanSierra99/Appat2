@@ -50,6 +50,15 @@
         <activity
             android:name=".ui.activities.CrearCursoActivity"
             android:theme="@style/AppatTheme"/>
+        <activity
+            android:name=".ui.activities.RegistrarAlumnoActivity"
+            android:theme="@style/AppatTheme"/>
+        <activity
+            android:name=".ui.activities.AlumnoManagementActivity"
+            android:theme="@style/AppatTheme"/>
+        <activity
+            android:name=".ui.activities.EditAlumnoActivity"
+            android:theme="@style/AppatTheme"/>
     </application>
 
 </manifest>

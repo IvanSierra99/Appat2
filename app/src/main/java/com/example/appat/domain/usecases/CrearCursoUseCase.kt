@@ -15,13 +15,13 @@ data class CrearCursoInput(
 interface CrearCursoUseCase: UseCaseSuspend<CrearCursoInput, AppResult<Curso, Throwable>>
 
 class CrearCursoUseCaseImpl(private val cursoRepository: CursoRepository) : CrearCursoUseCase {
-    override suspend fun invoke(input: CrearCursoInput): AppResult<Curso, Throwable> {
+    override suspend fun invoke(params: CrearCursoInput): AppResult<Curso, Throwable> {
         val curso = Curso(
-            nombre = input.nombre,
-            etapa = input.etapa,
-            centroEscolarId = input.centroEscolarId  // Asignar el centroEscolarId desde el input
+            nombre = params.nombre,
+            etapa = params.etapa,
+            centroEscolarId = params.centroEscolarId  // Asignar el centroEscolarId desde el input
         )
-        return appRunCatching { cursoRepository.createCurso(curso, input.token) }
+        return appRunCatching { cursoRepository.createCurso(curso, params.token) }
     }
 
 }

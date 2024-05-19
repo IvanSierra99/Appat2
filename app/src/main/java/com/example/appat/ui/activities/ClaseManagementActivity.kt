@@ -57,6 +57,16 @@ class ClaseManagementActivity : ComponentActivity() {
 
         val cursos by crearClaseViewModel.cursos.collectAsState()
 
+        val etapaOrder = mapOf(
+            "INFANTIL" to 0,
+            "CICLO_INICIAL" to 1,
+            "CICLO_MEDIO" to 2,
+            "CICLO_SUPERIOR" to 3,
+            "PRIMARIA" to 4,
+            "ESO" to 5,
+            "BACHILLERATO" to 6
+        )
+
         Scaffold(
             topBar = {
                 MyAppTopBar(
@@ -109,7 +119,9 @@ class ClaseManagementActivity : ComponentActivity() {
                             .fillMaxSize()
                             .padding(16.dp)
                     ) {
-                        cursos.groupBy { it.etapa }.forEach { (etapa, cursos) ->
+                        cursos.groupBy { it.etapa }
+                            .toSortedMap(compareBy { etapaOrder[it] })
+                            .forEach { (etapa, cursos) ->
                             item {
                                 Text(
                                     text = getEtapaName(etapa),
@@ -147,7 +159,7 @@ class ClaseManagementActivity : ComponentActivity() {
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(text = curso.nombre, style = MaterialTheme.typography.bodyLarge, fontSize = 18.sp)
-                if (curso.clases.isNotEmpty()) {
+                if (curso.clases?.isNotEmpty() == true) {
                     val clasesText = curso.clases.joinToString(separator = ", ") { it.nombre }
 
                     Row(

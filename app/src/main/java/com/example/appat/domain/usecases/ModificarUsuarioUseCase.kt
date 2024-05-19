@@ -19,9 +19,9 @@ data class ModificarUsuarioInput(
 class ModificarUsuarioUseCaseImpl(
     private val usuarioRepository: UsuarioRepository
 ) : ModificarUsuarioUseCase {
-    override suspend fun invoke(input: ModificarUsuarioInput): AppResult<Usuario, Throwable> {
+    override suspend fun invoke(params: ModificarUsuarioInput): AppResult<Usuario, Throwable> {
         return appRunCatching {
-            usuarioRepository.updateUser(input.usuario)
+            usuarioRepository.updateUser(params.usuario)
         }
     }
 

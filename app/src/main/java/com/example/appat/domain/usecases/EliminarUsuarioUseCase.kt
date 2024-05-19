@@ -12,9 +12,9 @@ data class EliminarUsuarioInput(val idUsuario: String, val token: String?)
 class EliminarUsuarioUseCaseImpl(
     private val usuarioRepository: UsuarioRepository
 ) : EliminarUsuarioUseCase {
-    override suspend fun invoke(input: EliminarUsuarioInput): AppResult<Unit, Throwable> {
+    override suspend fun invoke(params: EliminarUsuarioInput): AppResult<Unit, Throwable> {
         return appRunCatching {
-            usuarioRepository.deleteUser(input.idUsuario, input.token)
+            usuarioRepository.deleteUser(params.idUsuario, params.token)
         }
     }
 }

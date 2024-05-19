@@ -1,7 +1,5 @@
 package com.example.appat.ui.activities
 
-import AppatTheme
-import CrearUsuarioViewModel
 import MyAppTopBar
 import android.app.Activity
 import android.content.Context
@@ -56,6 +54,7 @@ import com.example.appat.R
 import com.example.appat.domain.entities.Correo
 import com.example.appat.domain.entities.Usuario
 import com.example.appat.domain.usecases.CrearUsuariInput
+import com.example.appat.ui.viewmodel.CrearUsuarioViewModel
 import kotlinx.coroutines.launch
 
 class CrearUsuarioActivity : ComponentActivity() {

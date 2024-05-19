@@ -56,7 +56,8 @@ fun EditUserScreenWithViewModel(
     eliminarUsuarioViewModel: EliminarUsuarioViewModel,
     userId: String?,
     token: String?
-) {    val snackbarHostState = remember { SnackbarHostState() }
+) {
+    val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current as? Activity
 
@@ -76,6 +77,8 @@ fun EditUserScreenWithViewModel(
     val focusManager = LocalFocusManager.current
 
     var emailError by remember { mutableStateOf(false) }
+
+    var showDeleteDialog by remember { mutableStateOf(false) } // Nuevo estado para controlar la visibilidad del diálogo
 
     LaunchedEffect(userId) {
         userId?.let {
@@ -286,6 +289,33 @@ fun EditUserScreenWithViewModel(
                     modifier = Modifier.padding(top = 16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     onClick = {
+                        showDeleteDialog = true // Mostrar el diálogo de confirmación
+                    }
+                ) {
+                    Text("Eliminar usuario")
+                }
+
+                // Mostrar mensaje de error si es necesario
+                if (showError) {
+                    Text(
+                        text = errorMessage,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
+            }
+        }
+    }
+
+    // Dialog de confirmación para eliminar usuario
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Confirmar eliminación") },
+            text = { Text("¿Estás seguro de que deseas eliminar este usuario?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
                         userId?.let {
                             eliminarUsuarioViewModel.eliminarUsuario(
                                 it,
@@ -308,21 +338,18 @@ fun EditUserScreenWithViewModel(
                                 }
                             )
                         }
+                        showDeleteDialog = false // Cerrar el diálogo después de la eliminación
                     }
                 ) {
-                    Text("Eliminar usuario")
+                    Text("Eliminar")
                 }
-
-                // Mostrar mensaje de error si es necesario
-                if (showError) {
-                    Text(
-                        text = errorMessage,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(top = 16.dp)
-                    )
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancelar")
                 }
             }
-        }
+        )
     }
 }
 
