@@ -1,5 +1,6 @@
 package com.example.appat.ui.activities
 
+import DefaultDrawerContent
 import MyAppTopBar
 import android.annotation.SuppressLint
 import android.content.Context
@@ -12,6 +13,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -45,50 +47,65 @@ class AlumnoManagementActivity : ComponentActivity() {
         val token = sharedPreferences.getString("token", null)
 
         setContent {
-            Scaffold(
-                topBar = {
-                    Column(modifier = Modifier.background(color = colorResource(id = R.color.light_primary))) {
-                        MyAppTopBar(
-                            onMenuClick = {
-                                // Acción al hacer clic en el botón del menú
-                            },
-                            schoolName = nombreCentro
-                        )
-                        Row(
+            val drawerState = rememberDrawerState(DrawerValue.Closed)
+            MyAppTopBar(
+                onMenuClick = { },
+                schoolName = nombreCentro,
+                drawerState = drawerState,
+                drawerContent = { DefaultDrawerContent(this, drawerState) },
+                content = { paddingValues ->
+                    Scaffold(
+                        modifier = Modifier.padding(paddingValues),
+                        topBar = {
+                            Column(modifier = Modifier.background(color = colorResource(id = R.color.accent).copy(0.6f))) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp, end = 8.dp, start = 8.dp)
+                                        .background(color = colorResource(id = R.color.transparent)),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    SearchBar(
+                                        modifier = Modifier.weight(0.8f).height(56.dp)
+                                            .padding(end = 4.dp), onSearch = { query ->
+                                            alumnoManagementViewModel.updateSearchQuery(query)
+                                        })
+                                    SortDropdownMenu(
+                                        modifier = Modifier.weight(0.2f).height(56.dp),
+                                        onSortSelected = { sortOrder ->
+                                            alumnoManagementViewModel.updateSortOrder(sortOrder)
+                                        })
+                                }
+                                FilterLegend(alumnoManagementViewModel)
+                                HorizontalDivider(
+                                    modifier = Modifier,
+                                    thickness = 2.dp,
+                                    color = colorResource(id = R.color.primary_text)
+                                )
+                            }
+                        },
+                        floatingActionButton = {
+                            FloatingActionButton(
+                                onClick = {
+                                    startActivity(Intent(this, RegistrarAlumnoActivity::class.java))
+                                },
+                                containerColor = colorResource(id = R.color.accent)
+                            ) {
+                                Icon(Icons.Filled.Add, contentDescription = "Agregar Alumno")
+                            }
+                        }
+                    ) { innerPadding ->
+                        Surface(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp)
-                                .background(color = colorResource(id = R.color.light_primary)),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                                .fillMaxSize()
+                                .padding(innerPadding),
+                            color = colorResource(id = R.color.light_primary)
                         ) {
-                            SearchBar(modifier = Modifier.weight(0.8f).height(56.dp), onSearch = { query ->
-                                alumnoManagementViewModel.updateSearchQuery(query)
-                            })
-                            SortDropdownMenu(modifier = Modifier.weight(0.2f).height(56.dp), onSortSelected = { sortOrder ->
-                                alumnoManagementViewModel.updateSortOrder(sortOrder)
-                            })
+                            AlumnoList(alumnoManagementViewModel, paddingValues)
                         }
                     }
-                },
-                floatingActionButton = {
-                    FloatingActionButton(
-                        onClick = {
-                            startActivity(Intent(this, RegistrarAlumnoActivity::class.java))
-                        }
-                    ) {
-                        Icon(Icons.Filled.Add, contentDescription = "Agregar Alumno")
-                    }
                 }
-            ) { paddingValues ->
-                Surface(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    color = colorResource(id = R.color.light_primary)
-                ) {
-                    AlumnoList(alumnoManagementViewModel, paddingValues)
-                }
-            }
+            )
         }
 
         // Cargar los cursos del centro escolar
@@ -106,6 +123,7 @@ class AlumnoManagementActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBar(modifier: Modifier = Modifier, onSearch: (String) -> Unit) {
     var searchQuery by remember { mutableStateOf("") }
@@ -119,7 +137,10 @@ fun SearchBar(modifier: Modifier = Modifier, onSearch: (String) -> Unit) {
         placeholder = { Text(text = "Buscar...") },
         modifier = modifier
             .padding(end = 0.dp)
-            .background(color = colorResource(id = R.color.light_primary))
+            .background(color = colorResource(id = R.color.transparent)),
+        colors = TextFieldDefaults.colors(
+            unfocusedContainerColor = colorResource(id = R.color.white),
+        )
     )
 }
 
@@ -132,8 +153,11 @@ fun SortDropdownMenu(modifier: Modifier = Modifier, onSortSelected: (String) -> 
         TextButton(
             onClick = { expanded = true },
             modifier = Modifier.fillMaxWidth().padding(0.dp).height(56.dp),
-            shape = RectangleShape,
-            contentPadding = PaddingValues(0.dp)
+            shape = RoundedCornerShape(8.dp),
+            contentPadding = PaddingValues(0.dp),
+            colors = ButtonDefaults.textButtonColors(
+                containerColor = colorResource(id = R.color.accent).copy(0.8f)
+            )
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally, // Center the content horizontally
@@ -142,6 +166,7 @@ fun SortDropdownMenu(modifier: Modifier = Modifier, onSortSelected: (String) -> 
             ) {
                 Text(
                     text = "Ordenar",
+                    color = colorResource(id = R.color.primary_text),
                     fontSize = 14.sp,  // Adjusted font size for better visibility
                     modifier = Modifier.fillMaxWidth()
                         .wrapContentWidth(Alignment.CenterHorizontally)
@@ -152,6 +177,7 @@ fun SortDropdownMenu(modifier: Modifier = Modifier, onSortSelected: (String) -> 
                 Icon(
                     Icons.Filled.ArrowDropDown,
                     contentDescription = "Ordenar",
+                    tint = colorResource(id = R.color.primary_text),
                     modifier = Modifier
                         .size(25.dp) // Size of the icon itself
                 )
@@ -196,11 +222,9 @@ fun AlumnoList(viewModel: AlumnoManagementViewModel, paddingValues: PaddingValue
     LazyColumn(
         contentPadding = PaddingValues(
             start = 16.dp,
-            top = 16.dp,
+            top = 8.dp,
             end = 16.dp,
-            bottom = 16.dp
         ),
-        modifier = Modifier.fillMaxSize()
     ) {
         val etapaOrder = listOf("INFANTIL", "CICLO_INICIAL", "CICLO_MEDIO", "CICLO_SUPERIOR", "PRIMARIA", "ESO", "BACHILLERATO")
         val sortedCursos = cursos.sortedBy { etapaOrder.indexOf(it.etapa) }
@@ -294,6 +318,88 @@ fun AlumnoItem(alumno: Alumno, curso: Curso, clase: String, onClick: () -> Unit)
             }
         }
     }
+}
+
+@Composable
+fun FilterLegend(viewModel: AlumnoManagementViewModel) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        Button(
+            onClick = { viewModel.clearAlergiaFilter() },
+            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+            modifier = Modifier
+                .weight(0.25f)
+                .padding(2.dp),  // Agrega margen alrededor de cada botón
+            contentPadding = PaddingValues(0.dp)  // Elimina el padding interno del botón
+        ) {
+            Text(
+                "Todos",
+                color = colorResource(id = R.color.primary_text),
+                fontSize = 12.sp,  // Ajusta el tamaño del texto
+                maxLines = 1, // Permite que el texto tenga solo una línea
+                overflow = TextOverflow.Ellipsis, // Corta el texto si es demasiado largo
+                modifier = Modifier.padding(horizontal = 0.dp, vertical = 0.dp) // Reduce los márgenes internos del texto
+            )
+        }
+        Button(
+            onClick = { viewModel.filterByAlergia("Intolerancia") },
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFF9C4)),
+            modifier = Modifier
+                .weight(0.25f)
+                .padding(2.dp),  // Agrega margen alrededor de cada botón
+            contentPadding = PaddingValues(0.dp)  // Elimina el padding interno del botón
+        ) {
+            Text(
+                "Intol.",
+                color = colorResource(id = R.color.primary_text),
+                fontSize = 12.sp,  // Ajusta el tamaño del texto
+                maxLines = 1, // Permite que el texto tenga solo una línea
+                overflow = TextOverflow.Ellipsis, // Corta el texto si es demasiado largo
+                modifier = Modifier.padding(horizontal = 0.dp, vertical = 0.dp) // Reduce los márgenes internos del texto
+            )
+        }
+        Button(
+            onClick = { viewModel.filterByAlergia("Alergia") },
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD699)),
+            modifier = Modifier
+                .weight(0.25f)
+                .padding(2.dp),  // Agrega margen alrededor de cada botón
+            contentPadding = PaddingValues(0.dp)  // Elimina el padding interno del botón
+        ) {
+            Text(
+                "Alergia",
+                color = colorResource(id = R.color.primary_text),
+                fontSize = 12.sp,  // Ajusta el tamaño del texto
+                maxLines = 1, // Permite que el texto tenga solo una línea
+                overflow = TextOverflow.Ellipsis, // Corta el texto si es demasiado largo
+                modifier = Modifier.padding(horizontal = 0.dp, vertical = 0.dp) // Reduce los márgenes internos del texto
+            )
+        }
+        Button(
+            onClick = { viewModel.filterByAlergia("Alergia Grave") },
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFCDD2)),
+            modifier = Modifier
+                .weight(0.25f)
+                .padding(2.dp),  // Agrega margen alrededor de cada botón
+            contentPadding = PaddingValues(0.dp)  // Elimina el padding interno del botón
+        ) {
+            Text(
+                "A.Grave",
+                color = colorResource(id = R.color.primary_text),
+                fontSize = 12.sp,  // Ajusta el tamaño del texto
+                maxLines = 1, // Permite que el texto tenga solo una línea
+                overflow = TextOverflow.Ellipsis, // Corta el texto si es demasiado largo
+                modifier = Modifier.padding(horizontal = 0.dp, vertical = 0.dp) // Reduce los márgenes internos del texto
+            )
+        }
+    }
+
+
+
 }
 
 private fun getEtapaName(etapa: String): String {

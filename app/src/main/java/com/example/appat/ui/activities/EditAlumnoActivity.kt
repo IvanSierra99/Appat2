@@ -1,5 +1,6 @@
 package com.example.appat.ui.activities
 
+import DefaultDrawerContent
 import MyAppTopBar
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -44,15 +45,26 @@ class EditAlumnoActivity : ComponentActivity() {
         val alumnoId = intent.getStringExtra("ALUMNO_ID")
         val sharedPreferences = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         val token = sharedPreferences.getString("token", null)
+        val nombreCentro = sharedPreferences.getString("nombreCentro", "Centro Escolar")
         val centroEscolarId = sharedPreferences.getString("centroEscolarId", null)
 
         setContent {
-            EditAlumnoScreenWithViewModel(
-                modificarAlumnoViewModel,
-                eliminarAlumnoViewModel,
-                alumnoId,
-                centroEscolarId,
-                token
+            val drawerState = rememberDrawerState(DrawerValue.Closed)
+            MyAppTopBar(
+                onMenuClick = { },
+                schoolName = nombreCentro,
+                drawerState = drawerState,
+                drawerContent = { DefaultDrawerContent(this, drawerState) },
+                content = { paddingValues ->
+                    EditAlumnoScreenWithViewModel(
+                        modificarAlumnoViewModel,
+                        eliminarAlumnoViewModel,
+                        alumnoId,
+                        centroEscolarId,
+                        token,
+                        paddingValues
+                    )
+                }
             )
         }
     }
@@ -65,7 +77,8 @@ fun EditAlumnoScreenWithViewModel(
     eliminarAlumnoViewModel: EliminarAlumnoViewModel,
     alumnoId: String?,
     centroEscolarId: String?,
-    token: String?
+    token: String?,
+    paddingValues: PaddingValues
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -98,6 +111,7 @@ fun EditAlumnoScreenWithViewModel(
     val alumno by modificarAlumnoViewModel.alumno.collectAsState()
     val cursos by modificarAlumnoViewModel.cursos.collectAsState()
     val alergias by modificarAlumnoViewModel.alergias.collectAsState()
+    var showDeleteDialog by remember { mutableStateOf(false) } // Nuevo estado para controlar la visibilidad del diálogo
 
     LaunchedEffect(alumno) {
         alumno?.let {
@@ -126,14 +140,7 @@ fun EditAlumnoScreenWithViewModel(
     )
 
     Scaffold(
-        topBar = {
-            MyAppTopBar(
-                onMenuClick = {
-                    // Acciones al hacer clic en el botón del menú de navegación
-                },
-                schoolName = "Editar Alumno"
-            )
-        },
+        modifier = Modifier.padding(paddingValues),
         snackbarHost = { CustomSnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         Surface(
@@ -323,6 +330,32 @@ fun EditAlumnoScreenWithViewModel(
                     modifier = Modifier.padding(top = 16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     onClick = {
+                        showDeleteDialog = true
+                    }
+                ) {
+                    Text("Eliminar alumno")
+                }
+
+                // Mostrar mensaje de error si es necesario
+                if (showError) {
+                    Text(
+                        text = errorMessage,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
+            }
+        }
+    }
+    // Dialog de confirmación para eliminar usuario
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Confirmar eliminación") },
+            text = { Text("¿Estás seguro de que deseas eliminar este alumno?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
                         alumnoId?.let {
                             eliminarAlumnoViewModel.eliminarAlumno(it, token,
                                 onSuccess = {
@@ -341,21 +374,18 @@ fun EditAlumnoScreenWithViewModel(
                                 }
                             )
                         }
+                        showDeleteDialog = false // Cerrar el diálogo después de la eliminación
                     }
                 ) {
-                    Text("Eliminar alumno")
+                    Text("Eliminar")
                 }
-
-                // Mostrar mensaje de error si es necesario
-                if (showError) {
-                    Text(
-                        text = errorMessage,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(top = 16.dp)
-                    )
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancelar")
                 }
             }
-        }
+        )
     }
 }
 

@@ -22,7 +22,7 @@ import kotlinx.serialization.json.put
 
 
 class ApiService(private val client: HttpClient) {
-    private val baseUrl = "http://192.168.1.138" +
+    private val baseUrl = "http://192.168.231.129" +
             ":8000"
     private val json = Json {
         ignoreUnknownKeys = true // Ignora las claves desconocidas en el JSON recibido

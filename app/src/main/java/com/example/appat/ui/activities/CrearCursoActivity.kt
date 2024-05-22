@@ -1,5 +1,6 @@
 package com.example.appat.ui.activities
 
+import DefaultDrawerContent
 import MyAppTopBar
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -45,13 +46,34 @@ class CrearCursoActivity : ComponentActivity() {
         val token = sharedPreferences.getString("token", null)
 
         setContent {
-            MainScreen(crearCursoViewModel, crearClaseViewModel, centroEscolarId, nombreCentro, token)
+            val drawerState = rememberDrawerState(DrawerValue.Closed)
+            MyAppTopBar(
+                onMenuClick = { },
+                schoolName = nombreCentro,
+                drawerState = drawerState,
+                drawerContent = { DefaultDrawerContent(this, drawerState) },
+                content = { paddingValues ->
+                    MainScreen(
+                        crearCursoViewModel,
+                        crearClaseViewModel,
+                        centroEscolarId,
+                        token,
+                        paddingValues
+                    )
+                }
+            )
         }
     }
 
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @Composable
-    fun MainScreen(viewModel: CrearCursoViewModel, claseViewModel: CrearClaseViewModel, centroEscolarId: String?, nombreCentro: String?, token: String?) {
+    fun MainScreen(
+        viewModel: CrearCursoViewModel,
+        claseViewModel: CrearClaseViewModel,
+        centroEscolarId: String?,
+        token: String?,
+        paddingValues: PaddingValues
+    ) {
         val cursoCreado = remember { mutableStateOf<Curso?>(null) }
         val showDialog = remember { mutableStateOf(false) }
         val showAddClassesDialog = remember { mutableStateOf(false) }
@@ -59,12 +81,12 @@ class CrearCursoActivity : ComponentActivity() {
         var allClassesCreated by remember { mutableStateOf(false) }
 
         Scaffold(
+            modifier = Modifier.padding(paddingValues),
             snackbarHost = { CustomSnackbarHost(snackbarHostState) }
         ) {
             CrearCursoScreenWithViewModel(
                 viewModel,
                 centroEscolarId,
-                nombreCentro,
                 token
             ) { curso ->
                 cursoCreado.value = curso
@@ -159,16 +181,8 @@ class CrearCursoActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun CrearCursoScreenWithViewModel(viewModel: CrearCursoViewModel, centroEscolarId: String?, nombreCentro: String?, token: String?, onCursoCreado: (Curso) -> Unit) {
+    fun CrearCursoScreenWithViewModel(viewModel: CrearCursoViewModel, centroEscolarId: String?, token: String?, onCursoCreado: (Curso) -> Unit) {
         Scaffold(
-            topBar = {
-                MyAppTopBar(
-                    onMenuClick = {
-                        // Acciones al hacer clic en el botón del menú de navegación
-                    },
-                    schoolName = nombreCentro
-                )
-            },
             snackbarHost = { CustomSnackbarHost(remember { SnackbarHostState() }) },
         ) { innerPadding ->
             Surface(

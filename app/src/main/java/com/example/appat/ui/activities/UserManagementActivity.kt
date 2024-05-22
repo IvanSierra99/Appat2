@@ -1,5 +1,6 @@
 package com.example.appat.ui.activities
 
+import DefaultDrawerContent
 import MyAppTopBar
 import android.annotation.SuppressLint
 import android.content.Context
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
@@ -36,34 +38,37 @@ class UserManagementActivity : ComponentActivity() {
         val token = sharedPreferences.getString("token", null)
 
         setContent {
-            Scaffold(
-                topBar = {
-                    MyAppTopBar(
-                        onMenuClick = {
-                            // Acción al hacer clic en el botón del menú
-                        },
-                        schoolName = nombreCentro
-                    )
-                },
-                floatingActionButton = {
-                    FloatingActionButton(
-                        onClick = {
-                            startActivity(Intent(this, CrearUsuarioActivity::class.java))
+            val drawerState = rememberDrawerState(DrawerValue.Closed)
+            MyAppTopBar(
+                onMenuClick = { },
+                schoolName = nombreCentro,
+                drawerState = drawerState,
+                drawerContent = { DefaultDrawerContent(this, drawerState) },
+                content = { paddingValues ->
+                    Scaffold(
+                        modifier = Modifier.padding(paddingValues),
+                        floatingActionButton = {
+                            FloatingActionButton(
+                                onClick = {
+                                    startActivity(Intent(this, CrearUsuarioActivity::class.java))
+                                },
+                                containerColor = colorResource(id = R.color.accent)
+                            ) {
+                                Icon(Icons.Filled.Add, contentDescription = "Agregar Usuario")
+                            }
                         }
-                    ) {
-                        Icon(Icons.Filled.Add, contentDescription = "Agregar Usuario")
+                    ) { innerPadding ->
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(innerPadding),
+                            color = colorResource(id = R.color.light_primary)
+                        ) {
+                            UserList(userManagementViewModel, innerPadding)
+                        }
                     }
                 }
-            ) { paddingValues ->
-                Surface(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    color = colorResource(id = R.color.light_primary)
-                ) {
-                    UserList(userManagementViewModel, paddingValues)
-                }
-            }
+            )
         }
 
         // Cargar los usuarios del centro escolar del administrador
@@ -88,9 +93,8 @@ fun UserList(viewModel: UserManagementViewModel, paddingValues: PaddingValues) {
     LazyColumn(
         contentPadding = PaddingValues(
             start = 16.dp,
-            top = 16.dp,
-            end = 16.dp,
-            bottom = 16.dp
+            top = 8.dp,
+            end = 16.dp
         ),
         modifier = Modifier.fillMaxSize()
     ) {
@@ -112,7 +116,9 @@ fun UserItem(user: Usuario, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+
     ) {
         Column(
             modifier = Modifier.padding(16.dp)

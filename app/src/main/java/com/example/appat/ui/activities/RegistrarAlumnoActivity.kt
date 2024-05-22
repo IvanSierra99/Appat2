@@ -1,5 +1,6 @@
 package com.example.appat.ui.activities
 
+import DefaultDrawerContent
 import MyAppTopBar
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -53,26 +54,37 @@ class RegistrarAlumnoActivity : ComponentActivity() {
         val token = sharedPreferences.getString("token", null)
 
         setContent {
-            RegistrarAlumnoScreenWithViewModel(registrarAlumnoViewModel, centroEscolarId, nombreCentro, token)
+            val drawerState = rememberDrawerState(DrawerValue.Closed)
+            MyAppTopBar(
+                onMenuClick = { },
+                schoolName = nombreCentro,
+                drawerState = drawerState,
+                drawerContent = { DefaultDrawerContent(this, drawerState) },
+                content = { paddingValues ->
+                    RegistrarAlumnoScreenWithViewModel(
+                        registrarAlumnoViewModel,
+                        centroEscolarId,
+                        token,
+                        paddingValues
+                    )
+                }
+            )
         }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun RegistrarAlumnoScreenWithViewModel(viewModel: RegistrarAlumnoViewModel, centroEscolarId: String?, nombreCentro: String?, token: String?) {
+    fun RegistrarAlumnoScreenWithViewModel(
+        viewModel: RegistrarAlumnoViewModel,
+        centroEscolarId: String?,
+        token: String?,
+        paddingValues: PaddingValues
+    ) {
         val snackbarHostState = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
-        val activity = LocalContext.current as? Activity
 
         Scaffold(
-            topBar = {
-                MyAppTopBar(
-                    onMenuClick = {
-                        // Acciones al hacer clic en el botón del menú de navegación
-                    },
-                    schoolName = nombreCentro
-                )
-            },
+            modifier = Modifier.padding(paddingValues),
             snackbarHost = { CustomSnackbarHost(snackbarHostState) },
         ) { innerPadding ->
             Surface(

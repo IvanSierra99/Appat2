@@ -24,6 +24,9 @@ class AlumnoManagementViewModel(
     private val _sortOrder = MutableStateFlow("Apellido (A-Z)")
     val sortOrder: StateFlow<String> get() = _sortOrder
 
+    private val _alergiaFilter = MutableStateFlow<String?>(null)
+    val alergiaFilter: StateFlow<String?> get() = _alergiaFilter
+
     fun obtenerCursosPorCentro(centroEscolarId: String, token: String?) {
         viewModelScope.launch {
             try {
@@ -43,26 +46,27 @@ class AlumnoManagementViewModel(
         _sortOrder.value = order
     }
 
-    val filteredCursos: StateFlow<List<Curso>> = combine(_cursos, _searchQuery, _sortOrder) { cursos, query, order ->
-        val filtered = if (query.isBlank()) {
-            cursos
-        } else {
-            cursos.map { curso ->
-                curso.copy(
-                    clases = curso.clases?.map { clase ->
-                        clase.copy(
-                            alumnos = clase.alumnos.filter { alumno ->
-                                alumno.nombre.contains(query, ignoreCase = true) ||
-                                        alumno.apellido.contains(query, ignoreCase = true) ||
-                                        curso.nombre.contains(query, ignoreCase = true) ||
-                                        curso.etapa.contains(query, ignoreCase = true) ||
-                                        clase.nombre.contains(query, ignoreCase = true)
-                            }.toMutableList()
-                        )
-                    }?.filter { it.alumnos.isNotEmpty() }?.toMutableList()
-                )
-            }.filter { it.clases?.isNotEmpty() == true }
-        }
+    fun filterByAlergia(alergia: String) {
+        _alergiaFilter.value = alergia
+    }
+
+    fun clearAlergiaFilter() {
+        _alergiaFilter.value = null
+    }
+
+    val filteredCursos: StateFlow<List<Curso>> = combine(_cursos, _searchQuery, _sortOrder, _alergiaFilter) { cursos, query, order, alergia ->
+        val filtered = cursos.map { curso ->
+            curso.copy(
+                clases = curso.clases?.map { clase ->
+                    clase.copy(
+                        alumnos = clase.alumnos.filter { alumno ->
+                            (alergia == null || alumno.alergias.any { it.severidad == alergia }) &&
+                                    (query.isBlank() || alumno.nombre.contains(query, ignoreCase = true) || alumno.apellido.contains(query, ignoreCase = true))
+                        }.toMutableList()
+                    )
+                }?.filter { it.alumnos.isNotEmpty() }?.toMutableList()
+            )
+        }.filter { it.clases?.isNotEmpty() == true }
 
         val sorted = when (order) {
             "Apellido (A-Z)" -> filtered.map { curso ->

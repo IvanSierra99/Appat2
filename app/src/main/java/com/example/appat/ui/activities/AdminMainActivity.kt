@@ -1,5 +1,6 @@
 package com.example.appat.ui.activities
 
+import DefaultDrawerContent
 import MyAppTopBar
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -8,14 +9,27 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.appat.R
 
 class AdminMainActivity : ComponentActivity() {
@@ -25,66 +39,151 @@ class AdminMainActivity : ComponentActivity() {
         val sharedPreferences = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         val nombreCentro = sharedPreferences.getString("nombreCentro", "Centro Escolar")
         setContent {
-            AdminScreen(nombreCentro)
+            val drawerState = rememberDrawerState(DrawerValue.Closed)
+            MyAppTopBar(
+                onMenuClick = { },
+                schoolName = nombreCentro,
+                drawerState = drawerState,
+                drawerContent = { DefaultDrawerContent(this, drawerState) },
+                content = { paddingValues ->
+                    AdminScreen(paddingValues)
+                }
+            )
         }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun AdminScreen(nombreCentro: String?) {
+    fun AdminScreen(paddingValues: PaddingValues) {
         val context = LocalContext.current as? Activity
+
         Scaffold(
-            topBar = {
-                MyAppTopBar(
-                    onMenuClick = {
-                        // Acciones al hacer clic en el botón del menú de navegación
-                    },
-                    schoolName = nombreCentro
-                )
-            },
-            content = { paddingValues ->
+            modifier = Modifier.padding(paddingValues),
+            content = { innerPadding ->
                 Surface(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues),
+                        .padding(innerPadding),
                     color = colorResource(id = R.color.light_primary)
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(16.dp),
+                            .padding(8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Button(
-                            onClick = {
-                                context?.startActivity(Intent(context, UserManagementActivity::class.java))
-                            },
-                            modifier = Modifier.fillMaxWidth()
+                        Row(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            Text("Gestión de Usuarios")
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(
-                            onClick = {
-                                context?.startActivity(Intent(context, ClaseManagementActivity::class.java))
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Gestión de Clases")
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(
-                            onClick = {
-                                context?.startActivity(Intent(context, AlumnoManagementActivity::class.java))
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Gestión de Alumnos")
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .weight(1f),
+                                verticalArrangement = Arrangement.SpaceEvenly,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                AdminButton(
+                                    label = "Gestión de Usuarios",
+                                    onClick = { context?.startActivity(Intent(context, UserManagementActivity::class.java)) },
+                                    imageResId = R.drawable.monitor // Cambia esto a la imagen adecuada
+                                )
+                                AdminButton(
+                                    label = "Gestión de Alumnos",
+                                    onClick = { context?.startActivity(Intent(context, AlumnoManagementActivity::class.java)) },
+                                    imageResId = R.drawable.alumnos // Cambia esto a la imagen adecuada
+                                )
+                            }
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .weight(1f),
+                                verticalArrangement = Arrangement.SpaceEvenly,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                AdminButton(
+                                    label = "Gestión de Clases",
+                                    onClick = { context?.startActivity(Intent(context, ClaseManagementActivity::class.java)) },
+                                    imageResId = R.drawable.aula // Cambia esto a la imagen adecuada
+                                )
+                                AdminButton(
+                                    label = "Informes",
+                                    onClick = { /* Aquí puedes añadir la funcionalidad futura */ },
+                                    imageResId = R.drawable.informes // Cambia esto a la imagen adecuada
+                                )
+                            }
                         }
                     }
                 }
             }
         )
+    }
+
+    @Composable
+    fun AdminButton(label: String, onClick: () -> Unit, imageResId: Int) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(8.dp))
+                .clickable(onClick = onClick)
+                .padding(16.dp)
+                .border(
+                    width = 2.dp,
+                    color = Color.Black.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(8.dp)
+                ),
+            elevation = CardDefaults.cardElevation(8.dp), // Elevación para proporcionar la sombra
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(colorResource(id = R.color.light_primary))
+                    .border(
+                        width = 1.dp,
+                        color = Color.Black.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+            ) {
+                Image(
+                    painter = painterResource(id = imageResId),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clip(RoundedCornerShape(8.dp))
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White.copy(alpha = 0.3f))
+                        .clip(RoundedCornerShape(8.dp))
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .background(Color.White.copy(alpha = 0.8f))
+                            .width(200.dp)
+                            .height(60.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = colorResource(id = R.color.primary_text),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp
+                            ),
+                            textAlign = TextAlign.Center,
+                            maxLines = 2,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                }
+            }
+        }
     }
 }

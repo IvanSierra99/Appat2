@@ -1,5 +1,6 @@
 package com.example.appat.ui.activities
 
+import DefaultDrawerContent
 import MyAppTopBar
 import android.app.Activity
 import android.content.Context
@@ -41,10 +42,26 @@ class EditUserActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val userId = intent.getStringExtra("USER_ID")
         val sharedPreferences = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        val nombreCentro = sharedPreferences.getString("nombreCentro", "Centro Escolar")
         val token = sharedPreferences.getString("token", null)
 
         setContent {
-            EditUserScreenWithViewModel(editUserViewModel, eliminarUsuarioViewModel, userId, token)
+            val drawerState = rememberDrawerState(DrawerValue.Closed)
+            MyAppTopBar(
+                onMenuClick = { },
+                schoolName = nombreCentro,
+                drawerState = drawerState,
+                drawerContent = { DefaultDrawerContent(this, drawerState) },
+                content = { paddingValues ->
+                    EditUserScreenWithViewModel(
+                        editUserViewModel,
+                        eliminarUsuarioViewModel,
+                        userId,
+                        token,
+                        paddingValues
+                    )
+                }
+            )
         }
     }
 }
@@ -55,7 +72,8 @@ fun EditUserScreenWithViewModel(
     editUserViewModel: EditUserViewModel,
     eliminarUsuarioViewModel: EliminarUsuarioViewModel,
     userId: String?,
-    token: String?
+    token: String?,
+    paddingValues: PaddingValues
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -105,14 +123,7 @@ fun EditUserScreenWithViewModel(
     }
 
     Scaffold(
-        topBar = {
-            MyAppTopBar(
-                onMenuClick = {
-                    // Acciones al hacer clic en el botón del menú de navegación
-                },
-                schoolName = "Editar Usuario"
-            )
-        },
+        modifier = Modifier.padding(paddingValues),
         snackbarHost = { CustomSnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         Surface(

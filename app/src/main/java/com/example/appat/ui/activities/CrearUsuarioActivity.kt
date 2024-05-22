@@ -1,5 +1,6 @@
 package com.example.appat.ui.activities
 
+import DefaultDrawerContent
 import MyAppTopBar
 import android.app.Activity
 import android.content.Context
@@ -11,6 +12,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -37,6 +40,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -67,27 +71,39 @@ class CrearUsuarioActivity : ComponentActivity() {
         val token = sharedPreferences.getString("token", null)
 
         setContent {
-            CrearUsuarioScreenWithViewModel(crearUsuarioViewModel, centroEscolarId, nombreCentro, token)
+            val drawerState = rememberDrawerState(DrawerValue.Closed)
+            MyAppTopBar(
+                onMenuClick = { },
+                schoolName = nombreCentro,
+                drawerState = drawerState,
+                drawerContent = { DefaultDrawerContent(this, drawerState) },
+                content = { paddingValues ->
+                    CrearUsuarioScreenWithViewModel(
+                        crearUsuarioViewModel,
+                        centroEscolarId,
+                        token,
+                        paddingValues
+                    )
+                }
+            )
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CrearUsuarioScreenWithViewModel(viewModel: CrearUsuarioViewModel, centroEscolarId: String?, nombreCentro: String?, token: String?) {
+fun CrearUsuarioScreenWithViewModel(
+    viewModel: CrearUsuarioViewModel,
+    centroEscolarId: String?,
+    token: String?,
+    paddingValues: PaddingValues
+) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val activity = LocalContext.current as? Activity
     // Obtenemos el ViewModel usando Koin
     Scaffold(
-        topBar = {
-            MyAppTopBar(
-                onMenuClick = {
-                    // Acciones al hacer clic en el botón del menú de navegación
-                },
-                schoolName = nombreCentro
-            )
-        },
+        modifier = Modifier.padding(paddingValues),
         snackbarHost = { CustomSnackbarHost(snackbarHostState) },
     )  { innerPadding ->
         // The innerPadding adjusts the padding to avoid overlap with the scaffold's app bars or snackbar
