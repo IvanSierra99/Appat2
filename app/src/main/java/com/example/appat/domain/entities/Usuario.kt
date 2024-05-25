@@ -13,6 +13,7 @@ data class Usuario(
     val contraseña: Contraseña? = Contraseña.generarAleatoria(),
     val rol: Rol,
     val centroEscolar: CentroEscolar?,
+    val cursos: List<String> = emptyList(),
     val token: String? = null
 )
 

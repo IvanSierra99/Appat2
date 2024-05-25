@@ -3,10 +3,14 @@ package com.example.appat.domain.usecases
 import com.example.appat.core.AppResult
 import com.example.appat.core.UseCaseSuspend
 import com.example.appat.core.appRunCatching
+import com.example.appat.data.repositories.ClaseRepository
+import com.example.appat.data.repositories.CursoRepository
 import com.example.appat.domain.entities.*
 import com.example.appat.data.repositories.UsuarioRepository
 
-interface CrearUsuarioUseCase: UseCaseSuspend<CrearUsuariInput, AppResult<Usuario, Throwable>>
+interface CrearUsuarioUseCase: UseCaseSuspend<CrearUsuariInput, AppResult<Usuario, Throwable>> {
+    suspend fun getCursosByCentroEscolar(centroEscolarId: String, token: String?): AppResult<List<Curso>, Throwable>
+}
 
 data class CrearUsuariInput(
     val nombre: String,
@@ -15,20 +19,14 @@ data class CrearUsuariInput(
     val correo: String,
     val rol: String,
     val centroEscolarId: String?,
-    val token: String?
+    val token: String?,
+    val cursos: List<String> = emptyList()
 )
-class CrearUsuarioUseCaseImpl(
-    private val usuarioRepository: UsuarioRepository
-) : CrearUsuarioUseCase {
 
-    /*Todo contraseña generada automaticamente, enviar correo con nombre de usuario y contraseña
-        // Validar los datos de entrada (nombre, apellido1, apellido2, rol, contrasena)
-        // Crear un nuevo objeto Usuario con los datos ingresados
-        val nuevoUsuario = Usuario(nombre, apellido1, apellido2, rol, contrasena)
-        // Guardar el nuevo usuario en el repositorio
-        usuarioRepository.guardarUsuario(nuevoUsuario)
-        // Registrar la acción de creación de usuario
-        // Notificar al usuario el éxito de la creación*/
+class CrearUsuarioUseCaseImpl(
+    private val usuarioRepository: UsuarioRepository,
+    private val cursoRepository: CursoRepository
+) : CrearUsuarioUseCase {
 
     override suspend fun invoke(params: CrearUsuariInput): AppResult<Usuario, Throwable> {
         val usuario = params.toUser() // Utilizamos la extensión para convertir el input a Usuario
@@ -37,13 +35,19 @@ class CrearUsuarioUseCaseImpl(
         }
     }
 
-    // Definimos la extensión para convertir CrearUsuariInput a Usuario
+    override suspend fun getCursosByCentroEscolar(centroEscolarId: String, token: String?): AppResult<List<Curso>, Throwable> {
+        return appRunCatching {
+            cursoRepository.getCursosByCentroEscolar(centroEscolarId, token)
+        }
+    }
+
     private fun CrearUsuariInput.toUser() = Usuario(
         nombre = Nombre(this.nombre),
         apellido1 = Apellido(this.apellido1),
         correo = Correo(this.correo),
         rol = Rol(this.rol),
         centroEscolar = centroEscolarId?.let { CentroEscolar(it, "", "", "", "") },
+        cursos = this.cursos,
         token = token
     )
 }

@@ -52,16 +52,18 @@ val appModule = module {
     single<ClaseRepository> { ClaseRepositoryImpl(apiService = get()) }
     single<CursoRepository> { CursoRepositoryImpl(apiService = get()) }
     single<AlumnoRepository> { AlumnoRepositoryImpl(apiService = get()) }
+    single<AsistenciaRepository> { AsistenciaRepositoryImpl(apiService = get())}
 
-    factory<CrearUsuarioUseCase> { CrearUsuarioUseCaseImpl(usuarioRepository = get()) }
+    factory<CrearUsuarioUseCase> { CrearUsuarioUseCaseImpl(usuarioRepository = get(), cursoRepository = get()) }
     factory<IniciarSesionUseCase> { IniciarSesionUseCaseImpl(usuarioRepository = get()) }
-    factory<ModificarUsuarioUseCase> { ModificarUsuarioUseCaseImpl(usuarioRepository = get()) }
+    factory<ModificarUsuarioUseCase> { ModificarUsuarioUseCaseImpl(usuarioRepository = get(), cursoRepository = get()) }
     factory<EliminarUsuarioUseCase> { EliminarUsuarioUseCaseImpl(usuarioRepository = get()) }
     factory<CrearClaseUseCase> { CrearClaseUseCaseImpl(claseRepository = get(), cursoRepository = get()) }
     factory<CrearCursoUseCase> { CrearCursoUseCaseImpl(cursoRepository = get()) }
     factory<RegistrarAlumnoUseCase> { RegistrarAlumnoUseCaseImpl(alumnoRepository = get(), claseRepository = get(), cursoRepository = get()) }
     factory<ModificarAlumnoUseCase> { ModificarAlumnoUseCaseImpl(cursoRepository = get(), alumnoRepository = get()) }
     factory<EliminarAlumnoUseCase> { EliminarAlumnoUseCaseImpl(alumnoRepository = get()) }
+    factory<RegistrarAsistenciaAlumnoUseCase> { RegistrarAsistenciaAlumnoUseCaseImpl(cursoRepository = get(), asistenciaRepository = get())}
 
     viewModel { CrearUsuarioViewModel(get()) }
     viewModel { LoginViewModel(get()) }
@@ -74,5 +76,6 @@ val appModule = module {
     viewModel { AlumnoManagementViewModel(get()) }
     viewModel { ModificarAlumnoViewModel(get(), get()) }
     viewModel { EliminarAlumnoViewModel(get()) }
+    viewModel { AsistenciaManagementViewModel(get())}
 }
 

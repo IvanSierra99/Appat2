@@ -94,6 +94,11 @@ class AdminMainActivity : ComponentActivity() {
                                     onClick = { context?.startActivity(Intent(context, AlumnoManagementActivity::class.java)) },
                                     imageResId = R.drawable.alumnos // Cambia esto a la imagen adecuada
                                 )
+                                AdminButton(
+                                    label = "Gestión de Asistencia",
+                                    onClick = { context?.startActivity(Intent(context, AsistenciaManagementActivity::class.java)) },
+                                    imageResId = R.drawable.asistencia // Cambia esto a la imagen adecuada
+                                )
                             }
                             Column(
                                 modifier = Modifier

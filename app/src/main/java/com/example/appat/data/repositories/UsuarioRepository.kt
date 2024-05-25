@@ -93,7 +93,6 @@ class UsuarioRepositoryImpl(
     }
 
     private fun Usuario.toDTO(): UsuarioDTO {
-        val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         return UsuarioDTO(
             userId = this.userId,
             firstName = this.nombre.nombre, // Cambio de nombre de campo
@@ -103,7 +102,8 @@ class UsuarioRepositoryImpl(
             password = this.contraseña?.contraseña,
             rol = this.rol.rol,
             centroEscolar = this.centroEscolar?.toDTO(),
-            centroEscolarId = this.centroEscolar?.centroId
+            centroEscolarId = this.centroEscolar?.centroId,
+            cursos = this.cursos
         )
     }
 
@@ -117,6 +117,7 @@ class UsuarioRepositoryImpl(
             contraseña = this.password?.let { Contraseña.crearNueva(it) },
             rol = Rol(this.rol),
             centroEscolar = this.centroEscolar?.toDomain(),
+            cursos = this.cursos,
             token = token
         )
     }

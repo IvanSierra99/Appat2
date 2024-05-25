@@ -34,10 +34,8 @@ class LoginActivity : ComponentActivity() {
         setContent {
             // Passing this@LoginActivity to the LoginScreen
             LoginScreen(this@LoginActivity, loginViewModel)
-
         }
     }
-
 }
 
 @Composable
@@ -74,7 +72,6 @@ fun LoginScreen(activity: LoginActivity, loginViewModel: LoginViewModel) {
             onValueChange = { username = it },
             label = { Text("Username") },
             modifier = Modifier.fillMaxWidth(),
-
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
@@ -96,7 +93,7 @@ fun LoginScreen(activity: LoginActivity, loginViewModel: LoginViewModel) {
             onClick = {
                 hasAttemptedLogin = true  // Marcar que se ha intentado un login
                 loginViewModel.login(username, password)
-                      },
+            },
             modifier = Modifier.padding(top = 16.dp),
             enabled = username.isNotEmpty() && password.isNotEmpty()
         ) {
@@ -114,16 +111,17 @@ fun LoginScreen(activity: LoginActivity, loginViewModel: LoginViewModel) {
                         user.token,
                         user.username.username,
                         user.centroEscolar?.nombre,
-                        user.centroEscolar?.centroId )
+                        user.centroEscolar?.centroId,
+                        user.cursos // Guardar la lista de cursos en shared preferences
+                    )
                     if (user.rol.rol.trim().uppercase() == "ADMINISTRADOR") {
                         val intent = Intent(activity, AdminMainActivity::class.java)
                         activity.startActivity(intent)
                         activity.finish()
                     } else {
-                        snackbarHostState.showSnackbar(
-                            "Access not implemented for role: ${user.rol}",
-                            duration = SnackbarDuration.Long
-                        )
+                        val intent = Intent(activity, AsistenciaManagementActivity::class.java)
+                        activity.startActivity(intent)
+                        activity.finish()
                     }
                 } ?: snackbarHostState.showSnackbar(
                     "Login failed. Please try again.",
@@ -135,19 +133,18 @@ fun LoginScreen(activity: LoginActivity, loginViewModel: LoginViewModel) {
                     duration = SnackbarDuration.Short
                 )
             }
-
         }
     }
-
 }
 
-fun saveUserData(context: Context, token: String?, username: String, nombreCentro: String?, centroId: String?) {
+fun saveUserData(context: Context, token: String?, username: String, nombreCentro: String?, centroId: String?, cursos: List<String>?) {
     val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
     with(sharedPreferences.edit()) {
         putString("token", token)
         putString("username", username)
         putString("nombreCentro", nombreCentro)
         putString("centroEscolarId", centroId)
+        putStringSet("cursos", cursos?.toSet())
         apply()
     }
 }

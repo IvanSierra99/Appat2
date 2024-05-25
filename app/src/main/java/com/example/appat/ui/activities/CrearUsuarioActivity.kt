@@ -9,44 +9,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.Button
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.runtime.Composable
-import org.koin.androidx.viewmodel.ext.android.viewModel
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberDrawerState
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -56,13 +25,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.appat.R
 import com.example.appat.domain.entities.Correo
+import com.example.appat.domain.entities.Curso
 import com.example.appat.domain.entities.Usuario
 import com.example.appat.domain.usecases.CrearUsuariInput
 import com.example.appat.ui.viewmodel.CrearUsuarioViewModel
 import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class CrearUsuarioActivity : ComponentActivity() {
     private val crearUsuarioViewModel: CrearUsuarioViewModel by viewModel()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val sharedPreferences = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
@@ -101,12 +73,17 @@ fun CrearUsuarioScreenWithViewModel(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val activity = LocalContext.current as? Activity
-    // Obtenemos el ViewModel usando Koin
+
+    LaunchedEffect(Unit) {
+        centroEscolarId?.let { viewModel.getCursosByCentroEscolar(it, token) }
+    }
+
+    val cursos by viewModel.cursos.collectAsState()
+
     Scaffold(
         modifier = Modifier.padding(paddingValues),
         snackbarHost = { CustomSnackbarHost(snackbarHostState) },
-    )  { innerPadding ->
-        // The innerPadding adjusts the padding to avoid overlap with the scaffold's app bars or snackbar
+    ) { innerPadding ->
         Surface(
             modifier = Modifier
                 .fillMaxSize()
@@ -119,7 +96,7 @@ fun CrearUsuarioScreenWithViewModel(
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center,
             ) {
-                CrearUsuarioScreen(viewModel, centroEscolarId, token) { usuarioCreado ->
+                CrearUsuarioScreen(viewModel, centroEscolarId, token, cursos) { usuarioCreado ->
                     scope.launch {
                         val result = snackbarHostState.showSnackbar(
                             message = "Usuario creado exitosamente",
@@ -159,6 +136,7 @@ fun CrearUsuarioScreen(
     crearUsuarioViewModel: CrearUsuarioViewModel,
     centroEscolarId: String?,
     token: String?,
+    cursosDisponibles: List<Curso>,
     onUsuarioCreado: (Usuario) -> Unit
 ) {
     var nombre by remember { mutableStateOf("") }
@@ -166,7 +144,9 @@ fun CrearUsuarioScreen(
     var email by remember { mutableStateOf("") }
     var rol by remember { mutableStateOf("") }
     val roles = listOf("ADMINISTRADOR", "COORDINADOR", "MONITOR")
-    var expanded by remember { mutableStateOf(false) }
+    var expandedRol by remember { mutableStateOf(false) }
+    var expandedCursos by remember { mutableStateOf(false) }
+    val selectedCursos = remember { mutableStateListOf<Curso>() }
 
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
@@ -194,7 +174,6 @@ fun CrearUsuarioScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        // TextFields para los datos del usuario
         OutlinedTextField(
             value = nombre,
             onValueChange = { nombre = it },
@@ -231,11 +210,11 @@ fun CrearUsuarioScreen(
         }
 
         ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded },
+            expanded = expandedRol,
+            onExpandedChange = { expandedRol = !expandedRol },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp)
+                .padding(top = 16.dp)
         ) {
             TextField(
                 readOnly = true,
@@ -244,8 +223,8 @@ fun CrearUsuarioScreen(
                 label = { Text("Rol") },
                 trailingIcon = {
                     Icon(
-                        imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                        contentDescription = if (expanded) "Collapse menu" else "Expand menu"
+                        imageVector = if (expandedRol) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                        contentDescription = if (expandedRol) "Collapse menu" else "Expand menu"
                     )
                 },
                 modifier = Modifier
@@ -253,20 +232,77 @@ fun CrearUsuarioScreen(
                     .fillMaxWidth()
             )
             ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
+                expanded = expandedRol,
+                onDismissRequest = { expandedRol = false },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 roles.forEach { label ->
                     DropdownMenuItem(
-                        onClick = { rol = label; expanded = false },
+                        onClick = { rol = label; expandedRol = false },
                         text = { Text(label) }
                     )
                 }
             }
         }
 
-        // Botón para crear el usuario
+        // Dropdown para selección múltiple de cursos
+        Text("Cursos:", modifier = Modifier.padding(top = 8.dp))
+        ExposedDropdownMenuBox(
+            expanded = expandedCursos,
+            onExpandedChange = { expandedCursos = !expandedCursos },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            TextField(
+                readOnly = true,
+                value = selectedCursos.joinToString(", ") { "${it.nombre} (${it.etapa})" },
+                onValueChange = {},
+                label = { Text("Cursos") },
+                trailingIcon = {
+                    Icon(
+                        imageVector = if (expandedCursos) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                        contentDescription = if (expandedCursos) "Collapse menu" else "Expand menu"
+                    )
+                },
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+            )
+            ExposedDropdownMenu(
+                expanded = expandedCursos,
+                onDismissRequest = { expandedCursos = false },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                cursosDisponibles.forEach { curso ->
+                    DropdownMenuItem(
+                        onClick = {
+                            if (selectedCursos.contains(curso)) {
+                                selectedCursos.remove(curso)
+                            } else {
+                                selectedCursos.add(curso)
+                            }
+                        },
+                        text = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = selectedCursos.contains(curso),
+                                    onCheckedChange = {
+                                        if (it) {
+                                            selectedCursos.add(curso)
+                                        } else {
+                                            selectedCursos.remove(curso)
+                                        }
+                                    }
+                                )
+                                Text("${curso.nombre} (${curso.etapa})")
+                            }
+                        }
+                    )
+                }
+            }
+        }
+
         Button(
             modifier = Modifier.padding(top = 16.dp),
             enabled = camposObligatoriosLlenos,
@@ -281,13 +317,14 @@ fun CrearUsuarioScreen(
                         correo = email,
                         rol = rol,
                         centroEscolarId = centroEscolarId,
-                        token = token
+                        token = token,
+                        cursos = selectedCursos.map { it.cursoId }
                     )
                     crearUsuarioViewModel.createUser(
                         input = inputUsuario,
                         onSuccess = { usuarioCreado ->
                             onUsuarioCreado(usuarioCreado)
-                            showError = false  // Reset error visibility
+                            showError = false
                         },
                         onError = { error ->
                             showError = true
@@ -300,7 +337,6 @@ fun CrearUsuarioScreen(
             Text("Crear usuario")
         }
 
-        // Mostrar mensaje de error si es necesario
         if (showError) {
             Text(
                 text = errorMessage,

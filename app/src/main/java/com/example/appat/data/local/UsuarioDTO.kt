@@ -13,5 +13,6 @@ data class UsuarioDTO(
     @SerialName("password") val password: String? = null,
     @SerialName("rol") val rol: String,
     @SerialName("centro_escolar") val centroEscolar: CentroEscolarDTO? = null,
-    @SerialName("centro_escolar_id") val centroEscolarId: String? = null
+    @SerialName("centro_escolar_id") val centroEscolarId: String? = null,
+    @SerialName("cursos") val cursos: List<String> = emptyList() // Añadimos la lista de IDs de cursos
 )

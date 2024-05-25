@@ -12,6 +12,7 @@ interface AlumnoRepository {
     suspend fun getAlumnoById(alumnoId: String, token: String?): Alumno
     suspend fun updateAlumno(alumno: Alumno, token: String?): Alumno
     suspend fun deleteAlumno(alumnoId: String, token: String?)
+
 }
 
 class AlumnoRepositoryImpl(private val apiService: ApiService) : AlumnoRepository {
@@ -40,6 +41,7 @@ class AlumnoRepositoryImpl(private val apiService: ApiService) : AlumnoRepositor
     override suspend fun deleteAlumno(alumnoId: String, token: String?) {
         apiService.deleteAlumno(alumnoId, token)
     }
+
 
     object AlumnoMapper {
         fun toDTO(alumno: Alumno): AlumnoDTO {

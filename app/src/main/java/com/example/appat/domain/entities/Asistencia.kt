@@ -4,10 +4,11 @@ import java.util.Date
 import java.util.UUID
 
 data class Asistencia(
-    val fecha: Date,
-    val alumnoId: String,
-    val presente: Boolean,
-    val habitual: Boolean,
+    val asistenciaId: String = UUID.randomUUID().toString(),
+    val fecha: String,
+    val centroEscolarId: String,
+    val habitualIds: List<String> = listOf(),
+    val noHabitualIds: List<String> = listOf()
 ) {
 
 }

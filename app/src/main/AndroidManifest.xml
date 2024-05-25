@@ -59,6 +59,9 @@
         <activity
             android:name=".ui.activities.EditAlumnoActivity"
             android:theme="@style/AppatTheme"/>
+        <activity
+            android:name=".ui.activities.AsistenciaManagementActivity"
+            android:theme="@style/AppatTheme"/>
     </application>
 
 </manifest>

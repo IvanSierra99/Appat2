@@ -22,7 +22,8 @@ import kotlinx.serialization.json.put
 
 
 class ApiService(private val client: HttpClient) {
-    private val baseUrl = "http://192.168.231.129" +
+    private val baseUrl = "http://192.168.1.144" +
+            "" +
             ":8000"
     private val json = Json {
         ignoreUnknownKeys = true // Ignora las claves desconocidas en el JSON recibido
@@ -78,6 +79,9 @@ class ApiService(private val client: HttpClient) {
             }
             if (usuario.password != null) {
                 put("password", usuario.password)
+            }
+            if (usuario.cursos.isNotEmpty()) {
+                put("cursos", Json.encodeToJsonElement(usuario.cursos))
             }
         }
 
@@ -273,5 +277,32 @@ class ApiService(private val client: HttpClient) {
                 }
             }
         }
+    }
+
+    // Asistencia
+    suspend fun updateAsistencia(asistencia: AsistenciaDTO, token: String?): AsistenciaDTO {
+        val response: HttpResponse = client.patch("$baseUrl/asistencias/${asistencia.asistenciaId}/") {
+            contentType(ContentType.Application.Json)
+            setBody(asistencia)
+            if (token != null) {
+                headers {
+                    append(HttpHeaders.Authorization, "Token $token")
+                }
+            }
+        }
+        return json.decodeFromString(response.bodyAsText())
+    }
+
+    suspend fun getAsistenciaByDateAndCentro(fecha: String, centroEscolarId: String, token: String?): AsistenciaDTO {
+        val response: HttpResponse = client.get("$baseUrl/asistencias/?fecha=$fecha&centro_escolar_id=$centroEscolarId") {
+            if (token != null) {
+                headers {
+                    append(HttpHeaders.Authorization, "Token $token")
+                }
+            }
+        }
+        val responseBody = response.bodyAsText()
+        val asistenciaList: List<AsistenciaDTO> = json.decodeFromString(responseBody)
+        return asistenciaList.firstOrNull() ?: throw Exception("No asistencia found for the given date and center")
     }
 }
