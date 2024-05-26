@@ -45,6 +45,7 @@ class AlumnoManagementActivity : ComponentActivity() {
         val nombreCentro = sharedPreferences.getString("nombreCentro", "Centro Escolar")
         val centroEscolarId = sharedPreferences.getString("centroEscolarId", null)
         val token = sharedPreferences.getString("token", null)
+        val rol = sharedPreferences.getString("rol", "")
 
         setContent {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -52,7 +53,7 @@ class AlumnoManagementActivity : ComponentActivity() {
                 onMenuClick = { },
                 schoolName = nombreCentro,
                 drawerState = drawerState,
-                drawerContent = { DefaultDrawerContent(this, drawerState) },
+                drawerContent = { DefaultDrawerContent(this, drawerState, rol) },
                 content = { paddingValues ->
                     Scaffold(
                         modifier = Modifier.padding(paddingValues),
@@ -274,6 +275,19 @@ fun AlumnoItem(alumno: Alumno, curso: Curso, clase: String, onClick: () -> Unit)
         else -> Color.White
     }
 
+    val daysOfWeek = listOf("LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM")
+    val daysOfWeekMapping = mapOf(
+        "MO" to "LUN",
+        "TU" to "MAR",
+        "WE" to "MIÉ",
+        "TH" to "JUE",
+        "FR" to "VIE",
+        "SA" to "SÁB",
+        "SU" to "DOM"
+    )
+
+    val highlightedDays = alumno.diasHabituales.map { daysOfWeekMapping[it] ?: it }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -294,12 +308,34 @@ fun AlumnoItem(alumno: Alumno, curso: Curso, clase: String, onClick: () -> Unit)
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
                 )
-                /*Text(
-                    text = "Clase: ${clase}",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontSize = 14.sp
-                )*/
             }
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(
+                modifier = Modifier,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                daysOfWeek.forEach { day ->
+                    val isHighlighted = highlightedDays.contains(day)
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 4.dp)
+                            .size(20.dp)
+                            .background(
+                                color = if (isHighlighted) colorResource(id = R.color.secondary_text) else colorResource(id = R.color.divider),
+                                shape = RoundedCornerShape(4.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = day,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 8.sp
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
             if (alumno.alergias.isNotEmpty()) {
                 Text(
                     text = "Alergias: ${alumno.alergias.joinToString(", ") { it.nombre }}",

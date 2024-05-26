@@ -44,6 +44,7 @@ class EditUserActivity : ComponentActivity() {
         val sharedPreferences = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         val nombreCentro = sharedPreferences.getString("nombreCentro", "Centro Escolar")
         val token = sharedPreferences.getString("token", null)
+        val rol = sharedPreferences.getString("rol", "")
 
         setContent {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -51,7 +52,7 @@ class EditUserActivity : ComponentActivity() {
                 onMenuClick = { },
                 schoolName = nombreCentro,
                 drawerState = drawerState,
-                drawerContent = { DefaultDrawerContent(this, drawerState) },
+                drawerContent = { DefaultDrawerContent(this, drawerState, rol) },
                 content = { paddingValues ->
                     EditUserScreenWithViewModel(
                         editUserViewModel,

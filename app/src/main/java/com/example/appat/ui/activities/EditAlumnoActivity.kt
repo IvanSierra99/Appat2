@@ -47,6 +47,7 @@ class EditAlumnoActivity : ComponentActivity() {
         val token = sharedPreferences.getString("token", null)
         val nombreCentro = sharedPreferences.getString("nombreCentro", "Centro Escolar")
         val centroEscolarId = sharedPreferences.getString("centroEscolarId", null)
+        val rol = sharedPreferences.getString("rol", "")
 
         setContent {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -54,7 +55,7 @@ class EditAlumnoActivity : ComponentActivity() {
                 onMenuClick = { },
                 schoolName = nombreCentro,
                 drawerState = drawerState,
-                drawerContent = { DefaultDrawerContent(this, drawerState) },
+                drawerContent = { DefaultDrawerContent(this, drawerState, rol) },
                 content = { paddingValues ->
                     EditAlumnoScreenWithViewModel(
                         modificarAlumnoViewModel,
@@ -88,12 +89,17 @@ fun EditAlumnoScreenWithViewModel(
     var apellido by remember { mutableStateOf("") }
     var claseId by remember { mutableStateOf("") }
     var selectedAlergias by remember { mutableStateOf<List<Alergia>>(emptyList()) }
+    var diasHabituales by remember { mutableStateOf<List<String>>(emptyList()) }
     var expandedClase by remember { mutableStateOf(false) }
     var showAlergiaDialog by remember { mutableStateOf(false) }
+    var showDiasDialog by remember { mutableStateOf(false) }
 
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
+
+    val daysOfWeek = listOf("MO", "TU", "WE", "TH", "FR", "SA", "SU")
+    val daysOfWeekNames = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
 
     LaunchedEffect(alumnoId) {
         alumnoId?.let {
@@ -111,7 +117,7 @@ fun EditAlumnoScreenWithViewModel(
     val alumno by modificarAlumnoViewModel.alumno.collectAsState()
     val cursos by modificarAlumnoViewModel.cursos.collectAsState()
     val alergias by modificarAlumnoViewModel.alergias.collectAsState()
-    var showDeleteDialog by remember { mutableStateOf(false) } // Nuevo estado para controlar la visibilidad del diálogo
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(alumno) {
         alumno?.let {
@@ -119,6 +125,7 @@ fun EditAlumnoScreenWithViewModel(
             apellido = it.apellido
             claseId = it.claseId
             selectedAlergias = it.alergias
+            diasHabituales = it.diasHabituales
         }
     }
 
@@ -128,7 +135,6 @@ fun EditAlumnoScreenWithViewModel(
         }
     }
 
-    // Mapeo para mostrar las etapas de forma legible
     val etapaMapping = mapOf(
         "INFANTIL" to "Infantil",
         "PRIMARIA" to "Primaria",
@@ -263,7 +269,8 @@ fun EditAlumnoScreenWithViewModel(
                                 alergias.forEach { alergia ->
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.fillMaxWidth()
+                                        modifier = Modifier
+                                            .fillMaxWidth()
                                             .padding(top = 8.dp)
                                             .clickable {
                                                 val currentAlergias = selectedAlergias.toMutableList()
@@ -293,6 +300,95 @@ fun EditAlumnoScreenWithViewModel(
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showDiasDialog = true }
+                ) {
+                    TextField(
+                        value = diasHabituales.joinToString { daysOfWeekNames[daysOfWeek.indexOf(it)] },
+                        onValueChange = {},
+                        readOnly = true,
+                        enabled = false,
+                        trailingIcon = {
+                            Icon(
+                                imageVector = if (showDiasDialog) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                                contentDescription = if (showDiasDialog) "Collapse menu" else "Expand menu",
+                                tint = LocalContentColor.current.copy(LocalContentAlpha.current)
+                            )
+                        },
+                        label = { Text("Días Habituales") },
+                        colors = TextFieldDefaults.colors(
+                            disabledTextColor = LocalContentColor.current.copy(LocalContentAlpha.current),
+                            disabledLabelColor = LocalContentColor.current.copy(LocalContentAlpha.current),
+                            disabledTrailingIconColor = LocalContentColor.current.copy(LocalContentAlpha.current),
+                            disabledContainerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                if (showDiasDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showDiasDialog = false },
+                        title = { Text("Seleccione los días habituales") },
+                        text = {
+                            Column {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp)
+                                        .clickable {
+                                            val currentDays = diasHabituales.toMutableList()
+                                            if (currentDays.containsAll(daysOfWeek)) {
+                                                currentDays.clear()
+                                            } else {
+                                                currentDays.addAll(daysOfWeek)
+                                            }
+                                            diasHabituales = currentDays.distinct()
+                                        }
+                                ) {
+                                    Checkbox(
+                                        checked = diasHabituales.containsAll(daysOfWeek),
+                                        onCheckedChange = null // Handled by Row onClick
+                                    )
+                                    Text("Todos")
+                                }
+                                daysOfWeek.forEachIndexed { index, day ->
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 8.dp)
+                                            .clickable {
+                                                val currentDays = diasHabituales.toMutableList()
+                                                if (currentDays.contains(day)) {
+                                                    currentDays.remove(day)
+                                                } else {
+                                                    currentDays.add(day)
+                                                }
+                                                diasHabituales = currentDays
+                                            }
+                                    ) {
+                                        Checkbox(
+                                            checked = diasHabituales.contains(day),
+                                            onCheckedChange = null // Handled by Row onClick
+                                        )
+                                        Text(daysOfWeekNames[index])
+                                    }
+                                }
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(onClick = { showDiasDialog = false }) {
+                                Text("Aceptar")
+                            }
+                        }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = {
                         alumno?.let {
@@ -300,7 +396,8 @@ fun EditAlumnoScreenWithViewModel(
                                 nombre = nombre,
                                 apellido = apellido,
                                 claseId = claseId,
-                                alergias = selectedAlergias
+                                alergias = selectedAlergias,
+                                diasHabituales = diasHabituales
                             )
                             modificarAlumnoViewModel.modificarAlumno(updatedAlumno, token,
                                 onSuccess = {
@@ -336,7 +433,6 @@ fun EditAlumnoScreenWithViewModel(
                     Text("Eliminar alumno")
                 }
 
-                // Mostrar mensaje de error si es necesario
                 if (showError) {
                     Text(
                         text = errorMessage,
@@ -347,7 +443,7 @@ fun EditAlumnoScreenWithViewModel(
             }
         }
     }
-    // Dialog de confirmación para eliminar usuario
+
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -374,7 +470,7 @@ fun EditAlumnoScreenWithViewModel(
                                 }
                             )
                         }
-                        showDeleteDialog = false // Cerrar el diálogo después de la eliminación
+                        showDeleteDialog = false
                     }
                 ) {
                     Text("Eliminar")
@@ -388,6 +484,8 @@ fun EditAlumnoScreenWithViewModel(
         )
     }
 }
+
+
 
 @Composable
 private fun CustomSnackbarHost(snackbarHostState: SnackbarHostState) {

@@ -25,10 +25,19 @@ class RegistrarAlumnoViewModel(
     private val _alergias = MutableStateFlow<List<Alergia>>(emptyList())
     val alergias: StateFlow<List<Alergia>> = _alergias
 
-    fun registrarAlumno(nombre: String, apellido: String, claseId: String, alergias: List<Alergia>, token: String?, onSuccess: (Alumno) -> Unit, onError: (Throwable) -> Unit) {
+    fun registrarAlumno(
+        nombre: String,
+        apellido: String,
+        claseId: String,
+        alergias: List<Alergia>,
+        diasHabituales: List<String>,
+        token: String?,
+        onSuccess: (Alumno) -> Unit,
+        onError: (Throwable) -> Unit
+    ) {
         viewModelScope.launch {
             _state.value = AlumnoState.Loading
-            val result = registrarAlumnoUseCase.invoke(RegistrarAlumnoInput(nombre, apellido, claseId, alergias, token))
+            val result = registrarAlumnoUseCase.invoke(RegistrarAlumnoInput(nombre, apellido, claseId, alergias, diasHabituales, token))
             result.onSuccess {
                 _state.value = AlumnoState.Success(it)
                 onSuccess(it)

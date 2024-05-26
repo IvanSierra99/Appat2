@@ -15,6 +15,7 @@ data class RegistrarAlumnoInput(
     val apellido: String,
     val claseId: String,
     val alergias: List<Alergia>,
+    val diasHabituales: List<String>,
     val token: String?
 )
 
@@ -33,7 +34,8 @@ class RegistrarAlumnoUseCaseImpl(
             nombre = params.nombre,
             apellido = params.apellido,
             claseId = params.claseId,
-            alergias = params.alergias
+            alergias = params.alergias,
+            diasHabituales = params.diasHabituales
         )
 
         return appRunCatching {

@@ -44,6 +44,7 @@ class CrearCursoActivity : ComponentActivity() {
         val centroEscolarId = sharedPreferences.getString("centroEscolarId", null)
         val nombreCentro = sharedPreferences.getString("nombreCentro", "Centro Escolar")
         val token = sharedPreferences.getString("token", null)
+        val rol = sharedPreferences.getString("rol", "")
 
         setContent {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -51,7 +52,7 @@ class CrearCursoActivity : ComponentActivity() {
                 onMenuClick = { },
                 schoolName = nombreCentro,
                 drawerState = drawerState,
-                drawerContent = { DefaultDrawerContent(this, drawerState) },
+                drawerContent = { DefaultDrawerContent(this, drawerState, rol) },
                 content = { paddingValues ->
                     MainScreen(
                         crearCursoViewModel,

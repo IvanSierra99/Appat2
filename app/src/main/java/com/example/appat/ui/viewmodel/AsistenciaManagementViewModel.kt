@@ -2,6 +2,7 @@ package com.example.appat.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.appat.domain.entities.Alumno
 import com.example.appat.domain.entities.Asistencia
 import com.example.appat.domain.entities.Curso
 import com.example.appat.domain.usecases.RegistrarAsistenciaAlumnoUseCase
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.util.Locale
 
 class AsistenciaManagementViewModel(
     private val registrarAsistenciaUseCase: RegistrarAsistenciaAlumnoUseCase
@@ -56,6 +58,11 @@ class AsistenciaManagementViewModel(
                 e.printStackTrace() // Imprime la traza de la excepción para depuración
             }
         }
+    }
+
+    fun esHabitualHoy(alumno: Alumno): Boolean {
+        val today = LocalDate.now().dayOfWeek.name.substring(0, 2).uppercase(Locale.ROOT)
+        return alumno.diasHabituales.contains(today)
     }
 
     fun updateSearchQuery(query: String) {

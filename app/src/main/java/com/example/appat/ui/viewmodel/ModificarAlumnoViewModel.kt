@@ -48,6 +48,7 @@ class ModificarAlumnoViewModel(
                 apellido = alumno.apellido,
                 claseId = alumno.claseId,
                 alergias = alumno.alergias,
+                diasHabituales = alumno.diasHabituales,
                 token = token
             )
             val result = modificarAlumnoUseCase.invoke(input)

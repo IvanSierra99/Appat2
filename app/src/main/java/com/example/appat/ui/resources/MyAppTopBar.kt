@@ -17,8 +17,11 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.Assessment
+import androidx.compose.material.icons.filled.ChecklistRtl
 import androidx.compose.material.icons.filled.Class
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.School
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -29,6 +32,7 @@ import com.example.appat.ui.activities.AlumnoManagementActivity
 import com.example.appat.ui.activities.ClaseManagementActivity
 import com.example.appat.ui.activities.UserManagementActivity
 import com.example.appat.ui.activities.AdminMainActivity
+import com.example.appat.ui.activities.AsistenciaManagementActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,7 +41,7 @@ fun MyAppTopBar(
     schoolName: String?,
     drawerState: DrawerState,
     drawerContent: @Composable () -> Unit,
-    content: @Composable (PaddingValues) -> Unit
+    content: @Composable (PaddingValues) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
 
@@ -47,7 +51,7 @@ fun MyAppTopBar(
             Surface(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .width(240.dp)
+                    .width(260.dp)
                     .background(colorResource(id = R.color.white))
                     .clip(RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp))
             ) {
@@ -120,7 +124,7 @@ fun isCurrentActivity(context: Context, activityClass: Class<*>): Boolean {
 }
 
 @Composable
-fun DefaultDrawerContent(context: Context, drawerState: DrawerState) {
+fun DefaultDrawerContent(context: Context, drawerState: DrawerState, userRole: String?) {
     val scope = rememberCoroutineScope()
 
     Column(modifier = Modifier.background(colorResource(id = R.color.white))) {
@@ -133,37 +137,59 @@ fun DefaultDrawerContent(context: Context, drawerState: DrawerState) {
                 color = colorResource(id = R.color.primary_text)
             )
         )
-        Divider(color = colorResource(id = R.color.divider))
+        HorizontalDivider(color = colorResource(id = R.color.divider))
+
+        if (userRole == "ADMINISTRADOR") {
+            DrawerMenuItem(
+                icon = Icons.Default.Person,
+                label = "Gestión de Usuarios",
+                onClick = {
+                    openActivityWithBackStack(context, UserManagementActivity::class.java)
+                    scope.launch { drawerState.close() }
+                },
+                enabled = !isCurrentActivity(context, UserManagementActivity::class.java)
+            )
+            DrawerMenuItem(
+                icon = Icons.Default.School,
+                label = "Gestión de Alumnos",
+                onClick = {
+                    openActivityWithBackStack(context, AlumnoManagementActivity::class.java)
+                    scope.launch { drawerState.close() }
+                },
+                enabled = !isCurrentActivity(context, AlumnoManagementActivity::class.java)
+            )
+            DrawerMenuItem(
+                icon = Icons.Default.Class,
+                label = "Gestión de Clases",
+                onClick = {
+                    openActivityWithBackStack(context, ClaseManagementActivity::class.java)
+                    scope.launch { drawerState.close() }
+                },
+                enabled = !isCurrentActivity(context, ClaseManagementActivity::class.java)
+            )
+            DrawerMenuItem(
+                icon = Icons.Default.ChecklistRtl,
+                label = "Gestión de Asistencia",
+                onClick = {
+                    openActivityWithBackStack(context, AsistenciaManagementActivity::class.java)
+                    scope.launch { drawerState.close() }
+                },
+                enabled = !isCurrentActivity(context, AsistenciaManagementActivity::class.java)
+            )
+            DrawerMenuItem(
+                icon = Icons.Default.Assessment,
+                label = "Informes",
+                onClick = {
+                    // Aquí puedes añadir la funcionalidad futura
+                    scope.launch { drawerState.close() }
+                },
+                enabled = true // Puedes cambiar esta condición cuando implementes esta funcionalidad
+            )
+        }
+
         DrawerMenuItem(
-            icon = Icons.Default.Person,
-            label = "Gestión de Usuarios",
-            onClick = {
-                openActivityWithBackStack(context, UserManagementActivity::class.java)
-                scope.launch { drawerState.close() }
-            },
-            enabled = !isCurrentActivity(context, UserManagementActivity::class.java)
-        )
-        DrawerMenuItem(
-            icon = Icons.Default.School,
-            label = "Gestión de Alumnos",
-            onClick = {
-                openActivityWithBackStack(context, AlumnoManagementActivity::class.java)
-                scope.launch { drawerState.close() }
-            },
-            enabled = !isCurrentActivity(context, AlumnoManagementActivity::class.java)
-        )
-        DrawerMenuItem(
-            icon = Icons.Default.Class,
-            label = "Gestión de Clases",
-            onClick = {
-                openActivityWithBackStack(context, ClaseManagementActivity::class.java)
-                scope.launch { drawerState.close() }
-            },
-            enabled = !isCurrentActivity(context, ClaseManagementActivity::class.java)
-        )
-        DrawerMenuItem(
-            icon = Icons.Default.Assessment,
-            label = "Informes",
+            icon = Icons.Default.RestaurantMenu,
+            label = "Menú del mes",
             onClick = {
                 // Aquí puedes añadir la funcionalidad futura
                 scope.launch { drawerState.close() }

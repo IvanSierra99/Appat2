@@ -42,7 +42,6 @@ class AlumnoRepositoryImpl(private val apiService: ApiService) : AlumnoRepositor
         apiService.deleteAlumno(alumnoId, token)
     }
 
-
     object AlumnoMapper {
         fun toDTO(alumno: Alumno): AlumnoDTO {
             return AlumnoDTO(
@@ -50,7 +49,8 @@ class AlumnoRepositoryImpl(private val apiService: ApiService) : AlumnoRepositor
                 nombre = alumno.nombre,
                 apellido = alumno.apellido,
                 claseId = alumno.claseId,
-                alergias = alumno.alergias.map { AlergiaMapper.toDTO(it) }
+                alergias = alumno.alergias.map { AlergiaMapper.toDTO(it) },
+                diasHabituales = alumno.diasHabituales
             )
         }
 
@@ -60,7 +60,8 @@ class AlumnoRepositoryImpl(private val apiService: ApiService) : AlumnoRepositor
                 nombre = alumnoDTO.nombre,
                 apellido = alumnoDTO.apellido,
                 claseId = alumnoDTO.claseId,
-                alergias = alumnoDTO.alergias.map { AlergiaMapper.toDomain(it) }
+                alergias = alumnoDTO.alergias.map { AlergiaMapper.toDomain(it) },
+                diasHabituales = alumnoDTO.diasHabituales
             )
         }
     }

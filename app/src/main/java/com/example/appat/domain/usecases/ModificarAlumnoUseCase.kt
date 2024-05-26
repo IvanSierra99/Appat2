@@ -15,6 +15,7 @@ data class ModificarAlumnoInput(
     val apellido: String,
     val claseId: String,
     val alergias: List<Alergia>,
+    val diasHabituales: List<String>,
     val token: String?
 )
 interface ModificarAlumnoUseCase :
@@ -36,7 +37,8 @@ class ModificarAlumnoUseCaseImpl(
                 nombre = params.nombre,
                 apellido = params.apellido,
                 claseId = params.claseId,
-                alergias = params.alergias
+                alergias = params.alergias,
+                diasHabituales = params.diasHabituales
             )
             alumnoRepository.updateAlumno(alumnoModificado, params.token)
             alumnoModificado

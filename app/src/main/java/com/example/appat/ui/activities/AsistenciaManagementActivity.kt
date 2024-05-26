@@ -19,6 +19,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -32,6 +33,7 @@ import com.example.appat.domain.entities.Curso
 import com.example.appat.ui.viewmodel.AsistenciaManagementViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class AsistenciaManagementActivity : ComponentActivity() {
     private val asistenciaManagementViewModel: AsistenciaManagementViewModel by viewModel()
@@ -44,6 +46,7 @@ class AsistenciaManagementActivity : ComponentActivity() {
         val centroEscolarId = sharedPreferences.getString("centroEscolarId", null)
         val token = sharedPreferences.getString("token", null)
         val cursosSet = sharedPreferences.getStringSet("cursos", emptySet()) // Obtener la lista de cursos
+        val rol = sharedPreferences.getString("rol", "")
 
         setContent {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -51,7 +54,7 @@ class AsistenciaManagementActivity : ComponentActivity() {
                 onMenuClick = { },
                 schoolName = nombreCentro,
                 drawerState = drawerState,
-                drawerContent = { DefaultDrawerContent(this, drawerState) },
+                drawerContent = { DefaultDrawerContent(this, drawerState, rol) },
                 content = { paddingValues ->
                     Scaffold(
                         modifier = Modifier.padding(paddingValues),
@@ -286,8 +289,32 @@ fun AlumnoItem(alumno: Alumno, curso: Curso, clase: String, token: String?, view
     }
 
     val asistencia by viewModel.currentAsistencia.collectAsState()
-    val isChecked = remember { mutableStateOf(asistencia?.habitualIds?.contains(alumno.alumnoId) == true) }
+    val isChecked = remember {
+        mutableStateOf(asistencia?.habitualIds?.contains(alumno.alumnoId) == true ||
+                asistencia?.noHabitualIds?.contains(alumno.alumnoId) == true)
+    }
     var showDialog by remember { mutableStateOf(false) }
+
+    val daysOfWeek = listOf("LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM")
+    val dayOfWeekMapping = mapOf(
+        "LUN" to "MO",
+        "MAR" to "TU",
+        "MIÉ" to "WE",
+        "JUE" to "TH",
+        "VIE" to "FR",
+        "SÁB" to "SA",
+        "DOM" to "SU"
+    )
+    val daysOfWeekMappingSpn = mapOf(
+        "MO" to "LUN",
+        "TU" to "MAR",
+        "WE" to "MIÉ",
+        "TH" to "JUE",
+        "FR" to "VIE",
+        "SA" to "SÁB",
+        "SU" to "DOM"
+    )
+    val highlightedDays = alumno.diasHabituales.map { daysOfWeekMappingSpn[it] ?: it }
 
     Card(
         modifier = Modifier
@@ -310,68 +337,170 @@ fun AlumnoItem(alumno: Alumno, curso: Curso, clase: String, token: String?, view
                     text = "${alumno.apellido}, ${alumno.nombre}",
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
+                    fontSize = 16.sp
                 )
-                if (alumno.alergias.isNotEmpty()) {
-                    Text(
-                        text = "Alergias: ${alumno.alergias.joinToString(", ") { it.nombre }}",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                } else {
-                    Text(
-                        text = "Alergias: -",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontSize = 12.sp
-                    )
+                Row(
+                    modifier = Modifier.padding(top = 4.dp).wrapContentHeight(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    val day = LocalDate.now().format(DateTimeFormatter.ofPattern("EEE")).uppercase()
+                    val isHighlighted = highlightedDays.contains(day)
+                    Box(
+                        modifier = Modifier
+                            .padding(end = 8.dp, top = 2.dp)
+                            .size(20.dp)
+                            .background(
+                                color = if (isHighlighted) colorResource(id = R.color.secondary_text) else colorResource(
+                                    id = R.color.divider
+                                ),
+                                shape = RoundedCornerShape(4.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = day,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 7.sp
+                        )
+                    }
+                    if (alumno.alergias.isNotEmpty()) {
+                        Text(
+                            text = "Alergias: ${alumno.alergias.joinToString(", ") { it.nombre }}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.align(Alignment.CenterVertically)
+                        )
+                    } else {
+                        Text(
+                            text = "Alergias: -",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontSize = 12.sp,
+                            modifier = Modifier.align(Alignment.CenterVertically)
+                        )
+                    }
                 }
             }
             Column(
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
             ) {
-                Checkbox(
-                    checked = isChecked.value,
-                    onCheckedChange = {
-                        isChecked.value = it
-                        val updatedAsistencia = asistencia?.let { currentAsistencia ->
-                            if (it) {
-                                currentAsistencia.copy(habitualIds = currentAsistencia.habitualIds.toMutableList().apply { add(alumno.alumnoId) })
-                            } else {
-                                currentAsistencia.copy(habitualIds = currentAsistencia.habitualIds.toMutableList().apply { remove(alumno.alumnoId) })
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 8.dp) // Ajusta el tamaño del área clickeable
+                        .size(40.dp) // Ajusta el tamaño visual de la Checkbox
+                ) {
+                    Checkbox(
+                        checked = isChecked.value,
+                        onCheckedChange = {
+                            isChecked.value = it
+                            val updatedAsistencia = asistencia?.let { currentAsistencia ->
+                                val habitualIds = currentAsistencia.habitualIds.toMutableList()
+                                val noHabitualIds = currentAsistencia.noHabitualIds.toMutableList()
+
+                                val dayOfWeekInSpanish = LocalDate.now().format(DateTimeFormatter.ofPattern("EEE")).uppercase()
+                                val dayOfWeek = dayOfWeekMapping[dayOfWeekInSpanish] ?: dayOfWeekInSpanish
+
+                                if (alumno.diasHabituales.contains(dayOfWeek)) {
+                                    if (it) {
+                                        habitualIds.add(alumno.alumnoId)
+                                        noHabitualIds.remove(alumno.alumnoId)
+                                    } else {
+                                        habitualIds.remove(alumno.alumnoId)
+                                    }
+                                } else {
+                                    if (it) {
+                                        noHabitualIds.add(alumno.alumnoId)
+                                        habitualIds.remove(alumno.alumnoId)
+                                    } else {
+                                        noHabitualIds.remove(alumno.alumnoId)
+                                    }
+                                }
+
+                                currentAsistencia.copy(
+                                    habitualIds = habitualIds,
+                                    noHabitualIds = noHabitualIds
+                                )
                             }
-                        }
-                        if (updatedAsistencia != null) {
-                            viewModel.registrarAsistencia(updatedAsistencia, token)
-                        }
-                    }
-                )
+                            if (updatedAsistencia != null) {
+                                viewModel.registrarAsistencia(updatedAsistencia, token)
+                            }
+                        },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .scale(1.5f)
+                            .padding(horizontal = 8.dp),
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = colorResource(id = R.color.secondary_text),
+                            checkmarkColor = colorResource(id = R.color.white))
+                    )
+                }
             }
         }
     }
 
     if (showDialog) {
         AlertDialog(
+            containerColor = backgroundColor,
             onDismissRequest = { showDialog = false },
             title = {
                 Text(text = "${alumno.apellido}, ${alumno.nombre}")
             },
             text = {
                 Column {
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        color = colorResource(id = R.color.secondary_text),
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        daysOfWeek.forEach { day ->
+                            val isHighlighted = highlightedDays.contains(day)
+                            Box(
+                                modifier = Modifier
+                                    .padding(horizontal = 4.dp)
+                                    .size(28.dp)
+                                    .background(
+                                        color = if (isHighlighted) colorResource(id = R.color.secondary_text) else colorResource(
+                                            id = R.color.divider
+                                        ),
+                                        shape = RoundedCornerShape(4.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = day,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 10.sp
+                                )
+                            }
+                        }
+                    }
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        color = colorResource(id = R.color.secondary_text),
+                        modifier = Modifier.padding(vertical = 16.dp)
+                    )
                     Text(text = "Alergias: ${alumno.alergias.joinToString(", ") { it.nombre }}")
                 }
             },
             confirmButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("OK")
+                    Text("OK", color = colorResource(id = R.color.secondary_text))
                 }
             }
         )
     }
 }
+
+
 
 @Composable
 fun FilterLegend(viewModel: AsistenciaManagementViewModel) {

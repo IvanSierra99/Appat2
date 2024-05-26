@@ -8,7 +8,6 @@ data class Alumno(
     val nombre: String,
     val apellido: String,
     val claseId: String,
-    val alergias: List<Alergia> = emptyList()
-) {
-
-}
+    val alergias: List<Alergia> = emptyList(),
+    val diasHabituales: List<String> = emptyList()
+)

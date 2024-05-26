@@ -36,6 +36,7 @@ class UserManagementActivity : ComponentActivity() {
         val nombreCentro = sharedPreferences.getString("nombreCentro", "Centro Escolar")
         val centroEscolarId = sharedPreferences.getString("centroEscolarId", null)
         val token = sharedPreferences.getString("token", null)
+        val rol = sharedPreferences.getString("rol", "")
 
         setContent {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -43,7 +44,7 @@ class UserManagementActivity : ComponentActivity() {
                 onMenuClick = { },
                 schoolName = nombreCentro,
                 drawerState = drawerState,
-                drawerContent = { DefaultDrawerContent(this, drawerState) },
+                drawerContent = { DefaultDrawerContent(this, drawerState, rol) },
                 content = { paddingValues ->
                     Scaffold(
                         modifier = Modifier.padding(paddingValues),

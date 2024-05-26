@@ -22,7 +22,7 @@ import kotlinx.serialization.json.put
 
 
 class ApiService(private val client: HttpClient) {
-    private val baseUrl = "http://192.168.1.144" +
+    private val baseUrl = "http://192.168.1.132" +
             "" +
             ":8000"
     private val json = Json {

@@ -52,6 +52,7 @@ class RegistrarAlumnoActivity : ComponentActivity() {
         val centroEscolarId = sharedPreferences.getString("centroEscolarId", null)
         val nombreCentro = sharedPreferences.getString("nombreCentro", "Centro Escolar")
         val token = sharedPreferences.getString("token", null)
+        val rol = sharedPreferences.getString("rol", "")
 
         setContent {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -59,7 +60,7 @@ class RegistrarAlumnoActivity : ComponentActivity() {
                 onMenuClick = { },
                 schoolName = nombreCentro,
                 drawerState = drawerState,
-                drawerContent = { DefaultDrawerContent(this, drawerState) },
+                drawerContent = { DefaultDrawerContent(this, drawerState, rol) },
                 content = { paddingValues ->
                     RegistrarAlumnoScreenWithViewModel(
                         registrarAlumnoViewModel,
@@ -142,15 +143,17 @@ class RegistrarAlumnoActivity : ComponentActivity() {
         var apellidoAlumno by remember { mutableStateOf("") }
         var claseId by remember { mutableStateOf("") }
         var selectedAlergias by remember { mutableStateOf<List<Alergia>>(emptyList()) }
+        var diasHabituales by remember { mutableStateOf<List<String>>(emptyList()) }
         var expandedClase by remember { mutableStateOf(false) }
-        var expandedAlergia by remember { mutableStateOf(false) }
         var showAlergiaDialog by remember { mutableStateOf(false) }
+        var showDiasDialog by remember { mutableStateOf(false) }
 
         var showError by remember { mutableStateOf(false) }
         var errorMessage by remember { mutableStateOf("") }
         val focusManager = LocalFocusManager.current
 
-        val camposObligatoriosLlenos = nombreAlumno.isNotEmpty() && apellidoAlumno.isNotEmpty() && claseId.isNotEmpty()
+        val camposObligatoriosLlenos =
+            nombreAlumno.isNotEmpty() && apellidoAlumno.isNotEmpty() && claseId.isNotEmpty()
 
         LaunchedEffect(Unit) {
             viewModel.getCursosByCentroEscolar(centroEscolarId ?: "", token)
@@ -170,6 +173,9 @@ class RegistrarAlumnoActivity : ComponentActivity() {
             "CICLO_MEDIO" to "Ciclo Medio",
             "CICLO_SUPERIOR" to "Ciclo Superior"
         )
+
+        val daysOfWeek = listOf("MO", "TU", "WE", "TH", "FR", "SA", "SU")
+        val daysOfWeekNames = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
 
         Column(
             modifier = Modifier
@@ -239,7 +245,12 @@ class RegistrarAlumnoActivity : ComponentActivity() {
                                 text = {
                                     Text(buildAnnotatedString {
                                         append("${curso.nombre}, ${etapaMapping[curso.etapa]} ")
-                                        append(AnnotatedString(clase.nombre, spanStyle = SpanStyle(fontWeight = FontWeight.Bold)))
+                                        append(
+                                            AnnotatedString(
+                                                clase.nombre,
+                                                spanStyle = SpanStyle(fontWeight = FontWeight.Bold)
+                                            )
+                                        )
                                     })
                                 }
                             )
@@ -285,17 +296,18 @@ class RegistrarAlumnoActivity : ComponentActivity() {
                             alergias.forEach { alergia ->
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier
+                                        .fillMaxWidth()
                                         .padding(top = 8.dp)
                                         .clickable {
-                                        val currentAlergias = selectedAlergias.toMutableList()
-                                        if (currentAlergias.contains(alergia)) {
-                                            currentAlergias.remove(alergia)
-                                        } else {
-                                            currentAlergias.add(alergia)
+                                            val currentAlergias = selectedAlergias.toMutableList()
+                                            if (currentAlergias.contains(alergia)) {
+                                                currentAlergias.remove(alergia)
+                                            } else {
+                                                currentAlergias.add(alergia)
+                                            }
+                                            selectedAlergias = currentAlergias
                                         }
-                                        selectedAlergias = currentAlergias
-                                    }
                                 ) {
                                     Checkbox(
                                         checked = selectedAlergias.contains(alergia),
@@ -313,17 +325,114 @@ class RegistrarAlumnoActivity : ComponentActivity() {
                     }
                 )
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showDiasDialog = true }
+            ) {
+                TextField(
+                    value = diasHabituales.joinToString { daysOfWeekNames[daysOfWeek.indexOf(it)] },
+                    onValueChange = {},
+                    readOnly = true,
+                    enabled = false,
+                    trailingIcon = {
+                        Icon(
+                            imageVector = if (showDiasDialog) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                            contentDescription = if (showDiasDialog) "Collapse menu" else "Expand menu",
+                            tint = LocalContentColor.current.copy(LocalContentAlpha.current)
+                        )
+                    },
+                    label = { Text("Días Habituales") },
+                    colors = TextFieldDefaults.colors(
+                        disabledTextColor = LocalContentColor.current.copy(LocalContentAlpha.current),
+                        disabledLabelColor = LocalContentColor.current.copy(LocalContentAlpha.current),
+                        disabledTrailingIconColor = LocalContentColor.current.copy(LocalContentAlpha.current),
+                        disabledContainerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            if (showDiasDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDiasDialog = false },
+                    title = { Text("Seleccione los días habituales") },
+                    text = {
+                        Column {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp)
+                                    .clickable {
+                                        val currentDays = diasHabituales.toMutableList()
+                                        if (currentDays.containsAll(daysOfWeek)) {
+                                            currentDays.clear()
+                                        } else {
+                                            currentDays.addAll(daysOfWeek)
+                                        }
+                                        diasHabituales = currentDays.distinct()
+                                    }
+                            ) {
+                                Checkbox(
+                                    checked = diasHabituales.containsAll(daysOfWeek),
+                                    onCheckedChange = null // Handled by Row onClick
+                                )
+                                Text("Todos")
+                            }
+                            daysOfWeek.forEachIndexed { index, day ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp)
+                                        .clickable {
+                                            val currentDays = diasHabituales.toMutableList()
+                                            if (currentDays.contains(day)) {
+                                                currentDays.remove(day)
+                                            } else {
+                                                currentDays.add(day)
+                                            }
+                                            diasHabituales = currentDays
+                                        }
+                                ) {
+                                    Checkbox(
+                                        checked = diasHabituales.contains(day),
+                                        onCheckedChange = null // Handled by Row onClick
+                                    )
+                                    Text(daysOfWeekNames[index])
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { showDiasDialog = false }) {
+                            Text("Aceptar")
+                        }
+                    }
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = {
-                    viewModel.registrarAlumno(nombreAlumno, apellidoAlumno, claseId, selectedAlergias, token,
+                    viewModel.registrarAlumno(
+                        nombreAlumno,
+                        apellidoAlumno,
+                        claseId,
+                        selectedAlergias,
+                        diasHabituales,
+                        token,
                         onSuccess = { alumnoCreado ->
                             onAlumnoCreado(alumnoCreado)
-                            showError = false  // Reset error visibility
+                            showError = false
                             nombreAlumno = ""
                             apellidoAlumno = ""
                             claseId = ""
                             selectedAlergias = emptyList()
+                            diasHabituales = emptyList()
                         },
                         onError = { error ->
                             showError = true
@@ -346,6 +455,5 @@ class RegistrarAlumnoActivity : ComponentActivity() {
             }
         }
     }
-
 
 }

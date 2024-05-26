@@ -36,13 +36,15 @@ class CrearClaseActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val sharedPreferences = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         val nombreCentro = sharedPreferences.getString("nombreCentro", "Centro Escolar")
+        val rol = sharedPreferences.getString("rol", "")
+
         setContent {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
             MyAppTopBar(
                 onMenuClick = { },
                 schoolName = nombreCentro,
                 drawerState = drawerState,
-                drawerContent = { DefaultDrawerContent(this, drawerState) },
+                drawerContent = { DefaultDrawerContent(this, drawerState, rol) },
                 content = { paddingValues ->
                     CrearClaseScreenWithViewModel(crearClaseViewModel, paddingValues)
                 }

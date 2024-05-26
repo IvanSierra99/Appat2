@@ -112,7 +112,8 @@ fun LoginScreen(activity: LoginActivity, loginViewModel: LoginViewModel) {
                         user.username.username,
                         user.centroEscolar?.nombre,
                         user.centroEscolar?.centroId,
-                        user.cursos // Guardar la lista de cursos en shared preferences
+                        user.cursos,
+                        user.rol.rol
                     )
                     if (user.rol.rol.trim().uppercase() == "ADMINISTRADOR") {
                         val intent = Intent(activity, AdminMainActivity::class.java)
@@ -137,7 +138,15 @@ fun LoginScreen(activity: LoginActivity, loginViewModel: LoginViewModel) {
     }
 }
 
-fun saveUserData(context: Context, token: String?, username: String, nombreCentro: String?, centroId: String?, cursos: List<String>?) {
+fun saveUserData(
+    context: Context,
+    token: String?,
+    username: String,
+    nombreCentro: String?,
+    centroId: String?,
+    cursos: List<String>?,
+    rol: String?
+) {
     val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
     with(sharedPreferences.edit()) {
         putString("token", token)
@@ -145,6 +154,7 @@ fun saveUserData(context: Context, token: String?, username: String, nombreCentr
         putString("nombreCentro", nombreCentro)
         putString("centroEscolarId", centroId)
         putStringSet("cursos", cursos?.toSet())
+        putString("rol", rol)
         apply()
     }
 }

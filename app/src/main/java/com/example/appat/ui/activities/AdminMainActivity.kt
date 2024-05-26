@@ -38,13 +38,14 @@ class AdminMainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val sharedPreferences = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         val nombreCentro = sharedPreferences.getString("nombreCentro", "Centro Escolar")
+        val rol = sharedPreferences.getString("rol", "")
         setContent {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
             MyAppTopBar(
                 onMenuClick = { },
                 schoolName = nombreCentro,
                 drawerState = drawerState,
-                drawerContent = { DefaultDrawerContent(this, drawerState) },
+                drawerContent = { DefaultDrawerContent(this, drawerState, rol) },
                 content = { paddingValues ->
                     AdminScreen(paddingValues)
                 }
@@ -95,9 +96,9 @@ class AdminMainActivity : ComponentActivity() {
                                     imageResId = R.drawable.alumnos // Cambia esto a la imagen adecuada
                                 )
                                 AdminButton(
-                                    label = "Gestión de Asistencia",
-                                    onClick = { context?.startActivity(Intent(context, AsistenciaManagementActivity::class.java)) },
-                                    imageResId = R.drawable.asistencia // Cambia esto a la imagen adecuada
+                                    label = "Informes",
+                                    onClick = { /* Aquí puedes añadir la funcionalidad futura */ },
+                                    imageResId = R.drawable.informes // Cambia esto a la imagen adecuada
                                 )
                             }
                             Column(
@@ -113,9 +114,14 @@ class AdminMainActivity : ComponentActivity() {
                                     imageResId = R.drawable.aula // Cambia esto a la imagen adecuada
                                 )
                                 AdminButton(
-                                    label = "Informes",
+                                    label = "Gestión de Asistencia",
+                                    onClick = { context?.startActivity(Intent(context, AsistenciaManagementActivity::class.java)) },
+                                    imageResId = R.drawable.asistencia // Cambia esto a la imagen adecuada
+                                )
+                                AdminButton(
+                                    label = "Menú del mes",
                                     onClick = { /* Aquí puedes añadir la funcionalidad futura */ },
-                                    imageResId = R.drawable.informes // Cambia esto a la imagen adecuada
+                                    imageResId = R.drawable.menu // Cambia esto a la imagen adecuada
                                 )
                             }
                         }
