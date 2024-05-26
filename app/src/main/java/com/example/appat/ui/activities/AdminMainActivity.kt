@@ -39,6 +39,7 @@ class AdminMainActivity : ComponentActivity() {
         val sharedPreferences = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         val nombreCentro = sharedPreferences.getString("nombreCentro", "Centro Escolar")
         val rol = sharedPreferences.getString("rol", "")
+
         setContent {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
             MyAppTopBar(
@@ -97,7 +98,7 @@ class AdminMainActivity : ComponentActivity() {
                                 )
                                 AdminButton(
                                     label = "Informes",
-                                    onClick = { /* Aquí puedes añadir la funcionalidad futura */ },
+                                    onClick = { context?.startActivity(Intent(context, InformeAsistenciaActivity::class.java))},
                                     imageResId = R.drawable.informes // Cambia esto a la imagen adecuada
                                 )
                             }

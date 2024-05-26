@@ -33,6 +33,7 @@ import com.example.appat.ui.activities.ClaseManagementActivity
 import com.example.appat.ui.activities.UserManagementActivity
 import com.example.appat.ui.activities.AdminMainActivity
 import com.example.appat.ui.activities.AsistenciaManagementActivity
+import com.example.appat.ui.activities.InformeAsistenciaActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -123,6 +124,13 @@ fun isCurrentActivity(context: Context, activityClass: Class<*>): Boolean {
     return currentActivityClass == activityClass
 }
 
+fun openAdminWithBackStack(context: Context, activityClass: Class<*>) {
+    val intent = Intent(context, activityClass)
+    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+    context.startActivity(intent)
+}
+
+
 @Composable
 fun DefaultDrawerContent(context: Context, drawerState: DrawerState, userRole: String?) {
     val scope = rememberCoroutineScope()
@@ -131,7 +139,19 @@ fun DefaultDrawerContent(context: Context, drawerState: DrawerState, userRole: S
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "Menú",
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(16.dp)
+                .clickable {
+                    if (userRole == "ADMINISTRADOR") {
+                        if( isCurrentActivity(context, AdminMainActivity::class.java)){
+                            scope.launch { drawerState.close() }
+                        } else {
+                            openAdminWithBackStack(context, AdminMainActivity::class.java)
+                            scope.launch { drawerState.close() }
+                        }
+                    } else {
+                        scope.launch { drawerState.close() }
+                    }
+                },
             style = MaterialTheme.typography.headlineSmall.copy(
                 fontWeight = FontWeight.Bold,
                 color = colorResource(id = R.color.primary_text)
@@ -180,10 +200,10 @@ fun DefaultDrawerContent(context: Context, drawerState: DrawerState, userRole: S
                 icon = Icons.Default.Assessment,
                 label = "Informes",
                 onClick = {
-                    // Aquí puedes añadir la funcionalidad futura
+                    openActivityWithBackStack(context, InformeAsistenciaActivity::class.java)
                     scope.launch { drawerState.close() }
                 },
-                enabled = true // Puedes cambiar esta condición cuando implementes esta funcionalidad
+                enabled = !isCurrentActivity(context, AsistenciaManagementActivity::class.java)
             )
         }
 

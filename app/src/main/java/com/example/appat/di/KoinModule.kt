@@ -64,6 +64,7 @@ val appModule = module {
     factory<ModificarAlumnoUseCase> { ModificarAlumnoUseCaseImpl(cursoRepository = get(), alumnoRepository = get()) }
     factory<EliminarAlumnoUseCase> { EliminarAlumnoUseCaseImpl(alumnoRepository = get()) }
     factory<RegistrarAsistenciaAlumnoUseCase> { RegistrarAsistenciaAlumnoUseCaseImpl(cursoRepository = get(), asistenciaRepository = get())}
+    factory<ConsultarGenerarInformeAsistenciaUseCase> { ConsultarGenerarInformeAsistenciaUseCaseImpl(asistenciaRepository = get(), cursoRepository = get()) }
 
     viewModel { CrearUsuarioViewModel(get()) }
     viewModel { LoginViewModel(get()) }
@@ -77,5 +78,6 @@ val appModule = module {
     viewModel { ModificarAlumnoViewModel(get(), get()) }
     viewModel { EliminarAlumnoViewModel(get()) }
     viewModel { AsistenciaManagementViewModel(get())}
+    viewModel { InformeAsistenciaViewModel(get()) }
 }
 
